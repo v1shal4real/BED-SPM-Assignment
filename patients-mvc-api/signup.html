@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign Up Page</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f2f2;
+      color: #111;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      display: flex;
+      width: 800px;
+      max-width: 100%;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .left-panel {
+      background-color: #fff;
+      flex: 1;
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+    }
+    .left-panel h2 {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      text-align: center;
+      color: #0d1f4a;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 25px;
+      background-color: #e3e3e3;
+      font-size: 1rem;
+      outline: none;
+      transition: background-color 0.2s ease;
+    }
+    .form-group input:focus {
+      background-color: #d0d0d0;
+    }
+    .left-panel button {
+      width: 100%;
+      background-color: #0d1f4a;
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      padding: 14px 0;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px rgba(13, 31, 74, 0.07);
+      letter-spacing: 0.5px;
+    }
+    .left-panel button:hover {
+      background-color: #0b1a3c;
+    }
+
+    .right-panel {
+      background-color: #0d1f4a;
+      color: #fff;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      position: relative;
+    }
+    .right-panel h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    .right-panel p {
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+    .right-panel a.login-link {
+      color: #ffc107;
+      font-weight: bold;
+    }
+    .right-panel a.login-link:hover {
+      text-decoration: underline;
+    }
+    .right-panel a.home-link {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9rem;
+      color: #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 2px;
+    }
+    .right-panel a.home-link:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .card { flex-direction: column; }
+      .left-panel, .right-panel { flex: none; width: 100%; }
+      .left-panel { padding: 30px 20px; }
+      .right-panel { padding: 30px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <!-- LEFT PANEL (Form) -->
+      <div class="left-panel">
+        <h2>Sign Up</h2>
+        <form id="signupForm">
+      <div class="form-group">
+        <input type="text" id="fullName" placeholder="Full Name" required />
+      </div>
+      <div class="form-group">
+        <input type="date" id="dob" placeholder="Date of Birth" required />
+      </div>
+      <div class="form-group">
+        <input type="tel" id="phone" placeholder="Contact Number" required />
+      </div>
+      <div class="form-group">
+        <input type="email" id="email" placeholder="Email" required />
+      </div>
+      <div class="form-group">
+        <input type="text" id="address" placeholder="Address" required />
+      </div>
+      <div class="form-group">
+        <input type="password" id="password" placeholder="Password" required />
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+
+      </div>
+
+      <!-- RIGHT PANEL (Welcome Back) -->
+      <div class="right-panel">
+        <h1>Welcome Back!</h1>
+        <p>Already have an account? <a href="login.html" class="login-link">Login</a></p>
+        <a href="#" class="home-link">Return to Home</a>
+      </div>
+    </div>
+  </div>
+<script src="signup.js"></script>
+</body>
+</html>
