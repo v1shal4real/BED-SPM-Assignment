@@ -276,14 +276,11 @@ async function handlePatientFormSubmit(event) {
         
         if (!response.ok) throw new Error('Failed to update patient');
         
-        // Close modal and refresh data
         closePatientModal();
         showSuccess('Patient updated successfully!');
         
-        // Refresh patient list
         await loadAllPatients();
         
-        // If we're viewing patient detail, refresh it too
         if (currentPatient && currentPatient.PatientID === editingPatientId) {
             await viewPatientDetail(editingPatientId);
         }
@@ -309,10 +306,8 @@ async function deletePatient(patientId) {
         
         showSuccess('Patient deleted successfully!');
         
-        // Refresh patient list
         await loadAllPatients();
         
-        // If we're viewing the deleted patient, go back to main view
         if (currentPatient && currentPatient.PatientID === patientId) {
             showAllPatients();
         }
@@ -340,7 +335,6 @@ function editAppointment(appointmentId) {
     document.getElementById('appointmentRoom').value = appointmentData.RoomNumber;
     document.getElementById('appointmentDoctor').value = appointmentData.DoctorID;
     
-    // Show modal
     document.getElementById('appointmentModal').style.display = 'block';
 }
 
@@ -366,11 +360,9 @@ async function handleAppointmentFormSubmit(event) {
         
         if (!response.ok) throw new Error('Failed to update appointment');
         
-        // Close modal and refresh data
         closeAppointmentModal();
         showSuccess('Appointment updated successfully!');
         
-        // Refresh appointment list
         if (currentPatient) {
             await viewPatientDetail(currentPatient.PatientID);
         }
@@ -396,7 +388,6 @@ async function deleteAppointment(appointmentId) {
         
         showSuccess('Appointment deleted successfully!');
         
-        // Refresh appointment list
         if (currentPatient) {
             await viewPatientDetail(currentPatient.PatientID);
         }
@@ -485,10 +476,3 @@ function showSuccess(message) {
         successDiv.remove();
     }, 3000);
 }
-
-// Handle Enter key press in search input
-document.getElementById('patientIdSearch').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        searchPatientById();
-    }
-});

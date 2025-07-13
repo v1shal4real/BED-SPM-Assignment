@@ -90,8 +90,6 @@ class CyModel {
             const request = new sql.Request();
             request.input('PatientID', sql.Int, patientId);
             
-            // Note: In a real application, you might want to handle foreign key constraints
-            // by either cascading deletes or preventing deletion if appointments exist
             const result = await request.query(`
                 DELETE FROM Patients 
                 WHERE PatientID = @PatientID
