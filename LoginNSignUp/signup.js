@@ -30,7 +30,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
 
     const result = await response.json();
     if (response.ok) {
-      // Redirect to profile page with PatientID in URL
+      localStorage.setItem('patientId', result.patientId);
       alert('Sign up successful!');
       window.location.href = "profile.html?id=" + result.patientId;
     } else {
@@ -39,5 +39,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
   } catch (error) {
     alert('Network error during sign up.');
     console.error(error);
+
   }
 });
+
