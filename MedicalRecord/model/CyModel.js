@@ -1,5 +1,5 @@
 const sql = require("mssql");
-const dbConfig = require("../dbConfig");
+const dbConfig = require("../../dbConfig");
 
 class CyModel {
     // Get all patients for the main spreadsheet view

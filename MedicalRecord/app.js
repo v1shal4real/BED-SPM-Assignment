@@ -16,7 +16,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
-// Patient routes
 app.get('/api/patients', cyController.getAllPatients);
 app.get('/api/patients/:id', cyController.getPatientById);
 app.put('/api/patients/:id', cyController.updatePatient);
