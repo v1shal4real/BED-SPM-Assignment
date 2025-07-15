@@ -5,7 +5,7 @@ const path = require('path');
 const cors = require('cors');
 dotenv.config();
 
-const medicationController = require('../BED-SPM-Assignment/MedicalTracker/controller/JcController'); // Adjust the path as necessary
+const medicationController = require('../BED-SPM-Assignment_Jack/MedicalTracker/controller/JcController');
 //const {
 //    validateMedication,
 //    validatePatientID,
@@ -23,8 +23,10 @@ app.use(cors());
 
 // Routes for Tracker
 app.get('/Tracker', medicationController.getAllMedications);
+app.get('/Tracker/:PatientID', medicationController.getMedicationById);
 app.post('/Tracker', medicationController.createMedication); 
 app.put('/Tracker/:PatientID/:MedicationID', medicationController.updateMedication);
+app.delete('/Tracker/:PatientID/:MedicationID', medicationController.deleteMedication);
 
 
 app.listen(port, () => {

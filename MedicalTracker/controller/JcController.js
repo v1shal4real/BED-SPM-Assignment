@@ -10,6 +10,25 @@ async function getAllMedications(req, res) {
     }
 }
 
+//get medication by Patient ID
+async function getMedicationById(req, res) {
+    try {
+        const PatientID = parseInt(req.params.PatientID);
+        if (isNaN(PatientID)) {
+            return res.status(400).json({ error: "Invalid Patient ID" });
+        }
+
+        const medication = await JcModels.getMedicationById(PatientID);
+        if (!medication) {
+            return res.status(404).json({ error: "Patient does not exist" });
+        }
+        res.json(medication);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving Patient" });
+    }
+}
+
 // create medication
 async function createMedication(req, res) {
     try {
@@ -26,7 +45,6 @@ async function updateMedication(req, res) {
     try {
         const PatientID = parseInt(req.params.PatientID);
         const MedicationID = parseInt(req.params.MedicationID);
-
         if (isNaN(PatientID) || isNaN(MedicationID)) {
             return res.status(400).json({ error: "Invalid Patient ID or Medication ID" });
         }
@@ -36,7 +54,7 @@ async function updateMedication(req, res) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const updatedMedication = await JcModels.updateMedication(PatientID, {MedicationID, DayOfWeek, TimeOfDay, Quantity});
+        const updatedMedication = await JcModels.updateMedication(PatientID, MedicationID, req.body);
         if (!updatedMedication) {
             return res.status(404).json({ error: "No Medication record found." });
         }
@@ -47,8 +65,31 @@ async function updateMedication(req, res) {
     }
 }
 
+// Delete medication
+async function deleteMedication(req, res) {
+    try {
+        const PatientID = parseInt(req.params.PatientID);
+        const MedicationID = parseInt(req.params.MedicationID);
+        if (isNaN(PatientID) || isNaN(MedicationID)) {
+            return res.status(400).json({ error: "Missing Patient or Medication ID" });
+        }
+
+        const deletedMedication = await JcModels.deleteMedication(PatientID, MedicationID);
+        if (!deletedMedication) {
+            return res.status(404).json({ error: "Medication or Patient ID not found" });
+        }
+
+        res.json(deletedMedication);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Problem deleting medication" });
+    }
+}
+
 module.exports = {
     getAllMedications,
+    getMedicationById,
     createMedication,
-    updateMedication
+    updateMedication,
+    deleteMedication
 };
