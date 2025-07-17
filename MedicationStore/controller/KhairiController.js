@@ -4,7 +4,7 @@ const {
   createMedication,
   updateMedication,
   deleteMedication
-} = require("../model/khairiModel");
+} = require("../model/KhairiModels");
 
 async function fetchAllMeds(req, res) {
   try {
