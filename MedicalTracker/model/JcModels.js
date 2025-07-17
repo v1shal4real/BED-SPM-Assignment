@@ -49,18 +49,16 @@ async function getMedicationById(PatientID) {
 }
 
 
-
-
  //Create new medication
 async function createMedication(medicationInfo) {
     let connection;
     try {
         connection = await sql.connect(dbConfig); 
-        const sqlQuery = `INSERT INTO Trackers (DayOfWeek, TimeOfDay, Quantity) 
+        const sqlQuery = `INSERT INTO Trackers (PatientID, MedicationID, DayOfWeek, TimeOfDay, Quantity) 
         OUTPUT INSERTED.PatientID, INSERTED.MedicationID, INSERTED.DayOfWeek, INSERTED.TimeOfDay, INSERTED.Quantity 
         VALUES (@PatientID, @MedicationID, @DayOfWeek,@TimeOfDay,@Quantity)`;
         const request = connection.request();
-        request.input("PatientID", sql.Int, PatientID);
+        request.input("PatientID", sql.Int, medicationInfo.PatientID);
         request.input("MedicationID", sql.Int, medicationInfo.MedicationID);
         request.input("DayOfWeek", sql.NVarChar, medicationInfo.DayOfWeek);
         request.input("TimeOfDay", sql.NVarChar, medicationInfo.TimeOfDay);
@@ -86,10 +84,11 @@ async function updateMedication(PatientID, MedicationID, medicationInfo) {
     let connection; 
     try {
         connection = await sql.connect(dbConfig); 
-        const sqlQuery = 'UPDATE Trackers SET DayOfWeek = @DayOfWeek, TimeOfDay = @TimeOfDay, Quantity = @Quantity WHERE PatientID = @PatientID AND MedicationID = @MedicationID';
+        const sqlQuery = 'UPDATE Trackers SET MedicationID = @NewMedicationID, DayOfWeek = @DayOfWeek, TimeOfDay = @TimeOfDay, Quantity = @Quantity WHERE PatientID = @PatientID AND MedicationID = @OldMedicationID';
         const request = connection.request();
         request.input("PatientID", sql.Int, PatientID);
-        request.input("MedicationID", sql.Int, MedicationID);
+        request.input("OldMedicationID", sql.Int, MedicationID);
+        request.input("NewMedicationID", sql.Int, medicationInfo.MedicationID);
         request.input("DayOfWeek", sql.NVarChar, medicationInfo.DayOfWeek);
         request.input("TimeOfDay", sql.NVarChar, medicationInfo.TimeOfDay);
         request.input("Quantity", sql.Int, medicationInfo.Quantity);
@@ -97,7 +96,7 @@ async function updateMedication(PatientID, MedicationID, medicationInfo) {
         if (result.rowsAffected[0] === 0) {
             return null; 
         }
-        return {PatientID, MedicationID, medicationInfo}; 
+        return {medicationInfo}; 
     } catch (error) {
         console.error("Database error:", error);
         throw error; 
@@ -125,7 +124,7 @@ async function deleteMedication(PatientID, MedicationID) {
         if (result.rowsAffected[0] === 0) {
             return null; 
         }
-        return { message: "Medication with id:  from Patient with id:  has been deleted!" };
+         return { message: `Medication with id: ${MedicationID} from Patient with id: ${PatientID} has been deleted!` };
     } catch (error) {
         console.error("Database error:", error);
         throw error; 
