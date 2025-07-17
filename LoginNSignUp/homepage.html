@@ -16,8 +16,7 @@
             <span>English</span>
             </div>
             <p class="header-motto">Better Health Begins Here.</p>
-            <a href="/login/login-signup.html" class="header-top-action">
-            Login<i class='bx bx-user'></i>
+            <i class='bx bx-user' id="profile-icon"></i>
             </a>
         </div>
         </div>
@@ -55,5 +54,21 @@
         </div>
         </div>
     </header>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileIcon = document.getElementById('profile-icon');
+        if (profileIcon) {
+            profileIcon.addEventListener('click', function() {
+            const patientId = localStorage.getItem('patientId');
+        if (patientId) {
+                window.location.href = `profile.html?id=${patientId}`;
+            } else {
+                alert('Please sign up first.');
+            }
+        });
+    }
+});
+</script>
+
 </body>
 </html>
