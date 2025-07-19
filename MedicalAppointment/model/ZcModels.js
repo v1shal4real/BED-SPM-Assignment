@@ -1,7 +1,6 @@
 const sql = require("mssql");
 const dbConfig = require("../../dbConfig");
 
-
 // Get all appointments (with names)
 async function getAllAppointments() {
   let connection;
@@ -25,6 +24,27 @@ async function getAllAppointments() {
       try { await connection.close(); } catch (err) { console.error("Error closing connection:", err); }
     }
   }
+}
+
+// Get appointments by PatientID (for logged-in user)
+async function getAppointmentsByPatientID(patientID) {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const query = `
+      SELECT a.AppointmentID, a.PatientID, p.FullName AS PatientName, a.DoctorID, d.FullName AS DoctorName,
+             a.AppointmentDateTime, a.Venue, a.RoomNumber
+      FROM Appointments a
+      JOIN Patients p ON a.PatientID = p.PatientID
+      JOIN Doctors d ON a.DoctorID = d.DoctorID
+      WHERE a.PatientID = @patientID
+    `;
+    const req = connection.request();
+    req.input("patientID", patientID);
+    const result = await req.query(query);
+    return result.recordset;
+  } catch (error) { throw error; }
+  finally { if (connection) try { await connection.close(); } catch (e) {} }
 }
 
 // Get appointment by ID (with names)
@@ -57,7 +77,34 @@ async function getAppointmentById(id) {
   }
 }
 
-// Create new appointment
+// Prevent double-booking (for both booking and rescheduling)
+async function isSlotAvailable(AppointmentDateTime, DoctorID, excludeAppointmentID = null) {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    let query = `
+      SELECT COUNT(*) AS count FROM Appointments
+      WHERE AppointmentDateTime = @AppointmentDateTime
+        AND DoctorID = @DoctorID
+    `;
+    if (excludeAppointmentID) {
+      query += ' AND AppointmentID <> @excludeID';
+    }
+    const req = connection.request();
+    req.input("AppointmentDateTime", AppointmentDateTime);
+    req.input("DoctorID", DoctorID);
+    if (excludeAppointmentID) req.input("excludeID", excludeAppointmentID);
+    const result = await req.query(query);
+    return result.recordset[0].count === 0;
+  } catch (error) {
+    console.error("DB error (isSlotAvailable):", error);
+    throw error;
+  } finally {
+    if (connection) { try { await connection.close(); } catch (err) {} }
+  }
+}
+
+// Create new appointment (assume all data validated and checked already)
 async function createAppointment(data) {
   let connection;
   try {
@@ -87,7 +134,7 @@ async function createAppointment(data) {
   }
 }
 
-// Update appointment (date/time only for simplicity)
+// Update appointment (reschedule: date/time only)
 async function updateAppointment(id, data) {
   let connection;
   try {
@@ -181,10 +228,12 @@ async function getRandomDoctorID() {
 
 module.exports = {
   getAllAppointments,
+  getAppointmentsByPatientID,
   getAppointmentById,
   createAppointment,
   updateAppointment,
   deleteAppointment,
   getLastAppointmentByPatientID,
   getRandomDoctorID,
+  isSlotAvailable
 };
