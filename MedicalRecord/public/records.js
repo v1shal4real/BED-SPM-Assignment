@@ -1,10 +1,9 @@
 // Global variables
 let allPatients = [];
 let currentPatient = null;
-let currentAppointments = [];
+let currentRecords = [];
 let allDoctors = [];
-let editingPatientId = null;
-let editingAppointmentId = null;
+let editingRecordId = null;
 const apiBaseUrl = "http://localhost:3000";
 
 // Initialize the application
@@ -16,11 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Patient form submission
-    document.getElementById('patientForm').addEventListener('submit', handlePatientFormSubmit);
-    
-    // Appointment form submission
-    document.getElementById('appointmentForm').addEventListener('submit', handleAppointmentFormSubmit);
+    // Record form submission
+    document.getElementById('appointmentForm').addEventListener('submit', handleRecordFormSubmit);
     
     // Close modals when clicking outside
     window.addEventListener('click', function(event) {
@@ -33,7 +29,7 @@ function setupEventListeners() {
 // Load all patients for the main table
 async function loadAllPatients() {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/patients`);
+        const response = await fetch(`${apiBaseUrl}/patients`);
         if (!response.ok) throw new Error('Failed to fetch patients');
         
         allPatients = await response.json();
@@ -47,7 +43,7 @@ async function loadAllPatients() {
 // Load all doctors for dropdown
 async function loadAllDoctors() {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/doctors`);
+        const response = await fetch(`${apiBaseUrl}/doctors`);
         if (!response.ok) throw new Error('Failed to fetch doctors');
         
         allDoctors = await response.json();
@@ -89,7 +85,6 @@ function displayPatientsTable() {
                     <th>Contact Number</th>
                     <th>Email</th>
                     <th>Address</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,12 +96,6 @@ function displayPatientsTable() {
                         <td>${patient.ContactNumber}</td>
                         <td>${patient.Email}</td>
                         <td>${patient.Address}</td>
-                        <td onclick="event.stopPropagation()">
-                            <div class="action-buttons">
-                                <button onclick="editPatient(${patient.PatientID})" class="btn btn-edit">Edit</button>
-                                <button onclick="deletePatient(${patient.PatientID})" class="btn btn-delete">Delete</button>
-                            </div>
-                        </td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -136,24 +125,22 @@ async function searchPatientById() {
 // View detailed patient information
 async function viewPatientDetail(patientId) {
     try {
-        // Show loading state
         document.getElementById('patientsTableSection').classList.add('hidden');
         document.getElementById('patientDetailSection').classList.remove('hidden');
         document.getElementById('patientDetailContainer').innerHTML = '<div class="loading">Loading patient details...</div>';
 
-        // Fetch patient details
-        const patientResponse = await fetch(`${apiBaseUrl}/api/patients/${patientId}`);
+        const patientResponse = await fetch(`${apiBaseUrl}/patients/${patientId}`);
         if (!patientResponse.ok) throw new Error('Patient not found');
         
         currentPatient = await patientResponse.json();
 
-        // Fetch patient appointments
-        const appointmentsResponse = await fetch(`${apiBaseUrl}/api/patients/${patientId}/appointments`);
-        if (!appointmentsResponse.ok) throw new Error('Failed to fetch appointments');
-        
-        currentAppointments = await appointmentsResponse.json();
+        const recordsResponse = await fetch(`${apiBaseUrl}/records/patient/${patientId}`);
+        if (recordsResponse.ok) {
+            currentRecords = await recordsResponse.json();
+        } else {
+            currentRecords = [];
+        }
 
-        // Display patient detail
         displayPatientDetail();
     } catch (error) {
         console.error('Error loading patient detail:', error);
@@ -168,10 +155,6 @@ function displayPatientDetail() {
     
     const patientDetailHTML = `
         <div class="patient-detail">
-            <div class="patient-actions">
-                <button onclick="editPatient(${currentPatient.PatientID})" class="btn btn-edit">Edit Patient</button>
-                <button onclick="deletePatient(${currentPatient.PatientID})" class="btn btn-delete">Delete Patient</button>
-            </div>
             <h2>Patient Information</h2>
             <div class="patient-info">
                 <div class="info-item">
@@ -202,155 +185,66 @@ function displayPatientDetail() {
         </div>
 
         <div class="appointments-section">
-            <h2>Past Appointments</h2>
-            ${currentAppointments.length === 0 ? 
-                '<p>No appointments found for this patient.</p>' :
-                currentAppointments.map(appointment => `
-                    <div class="appointment-card">
-                        <div class="appointment-header">
-                            <div class="appointment-date">${formatDateTime(appointment.AppointmentDateTime)}</div>
-                            <div class="appointment-details">${appointment.DoctorName}</div>
+            <h2>Medical Records</h2>
+            <div id="recordsContainer">
+                ${currentRecords.length === 0 ? 
+                    '<p>No medical records found for this patient.</p>' :
+                    currentRecords.map(record => `
+                        <div class="appointment-card">
+                            <div class="appointment-header">
+                                <div class="appointment-date">${formatDateTime(record.RecordDateTime)}</div>
+                                <div class="appointment-details">${record.DoctorName}</div>
+                            </div>
+                            <div class="appointment-details">
+                                <strong>Venue:</strong> ${record.Venue} | <strong>Room:</strong> ${record.RoomNumber}
+                            </div>
+                            <div class="appointment-actions">
+                                <button onclick="editRecord(${record.RecordID})" class="btn btn-edit">Edit</button>
+                                <button onclick="deleteRecord(${record.RecordID})" class="btn btn-delete">Delete</button>
+                            </div>
                         </div>
-                        <div class="appointment-details">
-                            <strong>Venue:</strong> ${appointment.Venue} | <strong>Room:</strong> ${appointment.RoomNumber}
-                        </div>
-                        <div class="appointment-actions">
-                            <button onclick="editAppointment(${appointment.AppointmentID})" class="btn btn-edit">Edit</button>
-                            <button onclick="deleteAppointment(${appointment.AppointmentID})" class="btn btn-delete">Delete</button>
-                        </div>
-                    </div>
-                `).join('')
-            }
+                    `).join('')
+                }
+            </div>
         </div>
     `;
     
     container.innerHTML = patientDetailHTML;
 }
 
-// Edit patient
-function editPatient(patientId) {
-    editingPatientId = patientId;
+// Edit record
+function editRecord(recordId) {
+    editingRecordId = recordId;
     
-    // Find patient data
-    let patientData = allPatients.find(p => p.PatientID === patientId);
-    if (!patientData && currentPatient && currentPatient.PatientID === patientId) {
-        patientData = currentPatient;
-    }
-    
-    if (!patientData) {
-        alert('Patient data not found');
+    // Find record data
+    const recordData = currentRecords.find(r => r.RecordID === recordId);
+    if (!recordData) {
+        alert('Record data not found');
         return;
     }
     
     // Populate form
-    document.getElementById('patientFullName').value = patientData.FullName;
-    document.getElementById('patientDOB').value = formatDateForInput(patientData.DateOfBirth);
-    document.getElementById('patientContact').value = patientData.ContactNumber;
-    document.getElementById('patientEmail').value = patientData.Email;
-    document.getElementById('patientAddress').value = patientData.Address;
-    
-    // Show modal
-    document.getElementById('patientModal').style.display = 'block';
-}
-
-// Handle patient form submission
-async function handlePatientFormSubmit(event) {
-    event.preventDefault();
-    
-    const formData = {
-        FullName: document.getElementById('patientFullName').value,
-        DateOfBirth: document.getElementById('patientDOB').value,
-        ContactNumber: document.getElementById('patientContact').value,
-        Email: document.getElementById('patientEmail').value,
-        Address: document.getElementById('patientAddress').value
-    };
-    
-    try {
-        const response = await fetch(`${apiBaseUrl}/api/patients/${editingPatientId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        if (!response.ok) throw new Error('Failed to update patient');
-        
-        closePatientModal();
-        showSuccess('Patient updated successfully!');
-        
-        await loadAllPatients();
-        
-        if (currentPatient && currentPatient.PatientID === editingPatientId) {
-            await viewPatientDetail(editingPatientId);
-        }
-        
-    } catch (error) {
-        console.error('Error updating patient:', error);
-        alert('Failed to update patient. Please try again.');
-    }
-}
-
-// Delete patient
-async function deletePatient(patientId) {
-    if (!confirm('Are you sure you want to delete this patient? This action cannot be undone.')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${apiBaseUrl}/api/patients/${patientId}`, {
-            method: 'DELETE'
-        });
-        
-        if (!response.ok) throw new Error('Failed to delete patient');
-        
-        showSuccess('Patient deleted successfully!');
-        
-        await loadAllPatients();
-        
-        if (currentPatient && currentPatient.PatientID === patientId) {
-            showAllPatients();
-        }
-        
-    } catch (error) {
-        console.error('Error deleting patient:', error);
-        alert('Failed to delete patient. Please try again.');
-    }
-}
-
-// Edit appointment
-function editAppointment(appointmentId) {
-    editingAppointmentId = appointmentId;
-    
-    // Find appointment data
-    const appointmentData = currentAppointments.find(a => a.AppointmentID === appointmentId);
-    if (!appointmentData) {
-        alert('Appointment data not found');
-        return;
-    }
-    
-    // Populate form
-    document.getElementById('appointmentDateTime').value = formatDateTimeForInput(appointmentData.AppointmentDateTime);
-    document.getElementById('appointmentVenue').value = appointmentData.Venue;
-    document.getElementById('appointmentRoom').value = appointmentData.RoomNumber;
-    document.getElementById('appointmentDoctor').value = appointmentData.DoctorID;
+    document.getElementById('appointmentDateTime').value = formatDateTimeForInput(recordData.RecordDateTime);
+    document.getElementById('appointmentVenue').value = recordData.Venue;
+    document.getElementById('appointmentRoom').value = recordData.RoomNumber;
+    document.getElementById('appointmentDoctor').value = recordData.DoctorID;
     
     document.getElementById('appointmentModal').style.display = 'block';
 }
 
-// Handle appointment form submission
-async function handleAppointmentFormSubmit(event) {
+// Handle record form submission
+async function handleRecordFormSubmit(event) {
     event.preventDefault();
     
     const formData = {
-        AppointmentDateTime: document.getElementById('appointmentDateTime').value,
+        RecordDateTime: document.getElementById('appointmentDateTime').value,
         Venue: document.getElementById('appointmentVenue').value,
         RoomNumber: document.getElementById('appointmentRoom').value,
         DoctorID: parseInt(document.getElementById('appointmentDoctor').value)
     };
     
     try {
-        const response = await fetch(`${apiBaseUrl}/api/appointments/${editingAppointmentId}`, {
+        const response = await fetch(`${apiBaseUrl}/records/${editingRecordId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -358,55 +252,71 @@ async function handleAppointmentFormSubmit(event) {
             body: JSON.stringify(formData)
         });
         
-        if (!response.ok) throw new Error('Failed to update appointment');
+        if (!response.ok) throw new Error('Failed to update record');
         
         closeAppointmentModal();
-        showSuccess('Appointment updated successfully!');
+        showSuccess('Medical record updated successfully!');
         
-        if (currentPatient) {
-            await viewPatientDetail(currentPatient.PatientID);
+        // Reload the record
+        if (editingRecordId) {
+            document.getElementById('recordIdSearch').value = editingRecordId;
+            await loadAppointmentRecord();
         }
         
     } catch (error) {
-        console.error('Error updating appointment:', error);
-        alert('Failed to update appointment. Please try again.');
+        console.error('Error updating record:', error);
+        alert('Failed to update record. Please try again.');
     }
 }
 
-// Delete appointment
-async function deleteAppointment(appointmentId) {
-    if (!confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
+// Delete record
+async function deleteRecord(recordId) {
+    if (!confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
         return;
     }
     
     try {
-        const response = await fetch(`${apiBaseUrl}/api/appointments/${appointmentId}`, {
+        const response = await fetch(`${apiBaseUrl}/records/${recordId}`, {
             method: 'DELETE'
         });
         
-        if (!response.ok) throw new Error('Failed to delete appointment');
+        if (!response.ok) throw new Error('Failed to delete record');
         
-        showSuccess('Appointment deleted successfully!');
+        showSuccess('Medical record deleted successfully!');
         
-        if (currentPatient) {
-            await viewPatientDetail(currentPatient.PatientID);
+        // Remove from current records and refresh display
+        currentRecords = currentRecords.filter(r => r.RecordID !== recordId);
+        const container = document.getElementById('recordsContainer');
+        if (currentRecords.length === 0) {
+            container.innerHTML = '<p>No records loaded. Enter a Record ID to view specific medical records.</p>';
+        } else {
+            container.innerHTML = currentRecords.map(record => `
+                <div class="appointment-card">
+                    <div class="appointment-header">
+                        <div class="appointment-date">${formatDateTime(record.RecordDateTime)}</div>
+                        <div class="appointment-details">${record.DoctorName}</div>
+                    </div>
+                    <div class="appointment-details">
+                        <strong>Venue:</strong> ${record.Venue} | <strong>Room:</strong> ${record.RoomNumber}
+                    </div>
+                    <div class="appointment-actions">
+                        <button onclick="editRecord(${record.RecordID})" class="btn btn-edit">Edit</button>
+                        <button onclick="deleteRecord(${record.RecordID})" class="btn btn-delete">Delete</button>
+                    </div>
+                </div>
+            `).join('');
         }
         
     } catch (error) {
-        console.error('Error deleting appointment:', error);
-        alert('Failed to delete appointment. Please try again.');
+        console.error('Error deleting record:', error);
+        alert('Failed to delete record. Please try again.');
     }
 }
 
 // Modal functions
-function closePatientModal() {
-    document.getElementById('patientModal').style.display = 'none';
-    editingPatientId = null;
-}
-
 function closeAppointmentModal() {
     document.getElementById('appointmentModal').style.display = 'none';
-    editingAppointmentId = null;
+    editingRecordId = null;
 }
 
 // Show all patients view
@@ -415,7 +325,7 @@ function showAllPatients() {
     document.getElementById('patientsTableSection').classList.remove('hidden');
     document.getElementById('patientIdSearch').value = '';
     currentPatient = null;
-    currentAppointments = [];
+    currentRecords = [];
 }
 
 // Utility functions

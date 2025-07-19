@@ -11,7 +11,7 @@ async function getAllPatients(req, res) {
     }
 }
 
-// Get a specific patient by ID (used also for individual patients view)
+// Get a specific patient by ID
 async function getPatientById(req, res) {
     try {
         const patientId = parseInt(req.params.id);
@@ -31,126 +31,72 @@ async function getPatientById(req, res) {
     }
 }
 
-// Update patient information
-async function updatePatient(req, res) {
+// Get all past appointments for a specific patient
+async function getAppointmentRecord(req, res) {
     try {
-        const patientId = parseInt(req.params.id);
-        if (isNaN(patientId)) {
-            return res.status(400).json({ error: 'Invalid patient ID' });
+        const recordId = parseInt(req.params.id);
+        if (isNaN(recordId)) {
+            return res.status(400).json({ error: 'Invalid record ID' });
         }
 
-        const { FullName, DateOfBirth, ContactNumber, Email, Address } = req.body;
-
-        // Validate required fields
-        if (!FullName || !DateOfBirth || !ContactNumber || !Email || !Address) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
-
-        const success = await CyModel.updatePatient(patientId, {
-            FullName,
-            DateOfBirth,
-            ContactNumber,
-            Email,
-            Address
-        });
-
-        if (!success) {
-            return res.status(404).json({ error: 'Patient not found' });
-        }
-
-        res.json({ message: 'Patient updated successfully' });
-    } catch (err) {
-        console.error('Error in updatePatient:', err);
-        res.status(500).json({ error: 'Failed to update patient' });
-    }
-}
-
-// Delete a patient
-async function deletePatient(req, res) {
-    try {
-        const patientId = parseInt(req.params.id);
-        if (isNaN(patientId)) {
-            return res.status(400).json({ error: 'Invalid patient ID' });
-        }
-
-        const success = await CyModel.deletePatient(patientId);
-        if (!success) {
-            return res.status(404).json({ error: 'Patient not found' });
-        }
-
-        res.json({ message: 'Patient deleted successfully' });
-    } catch (err) {
-        console.error('Error in deletePatient:', err);
-        res.status(500).json({ error: 'Failed to delete patient' });
-    }
-}
-
-// Get all appointments for a specific patient
-async function getPatientAppointments(req, res) {
-    try {
-        const patientId = parseInt(req.params.id);
-        if (isNaN(patientId)) {
-            return res.status(400).json({ error: 'Invalid patient ID' });
-        }
-
-        const appointments = await CyModel.getPatientAppointments(patientId);
+        const appointments = await CyModel.getAppointmentRecord(recordId);
         res.json(appointments);
     } catch (err) {
-        console.error('Error in getPatientAppointments:', err);
-        res.status(500).json({ error: 'Failed to fetch appointments' });
+        console.error('Error in getAppointmentRecord:', err);
+        res.status(500).json({ error: 'Failed to fetch appointment records' });
     }
 }
 
-// Update an appointment
-async function updateAppointment(req, res) {
+// Update past appointments
+async function updateAppointmentRecord(req, res) {
     try {
-        const appointmentId = parseInt(req.params.id);
-        if (isNaN(appointmentId)) {
-            return res.status(400).json({ error: 'Invalid appointment ID' });
+        const recordId = parseInt(req.params.id);
+        if (isNaN(recordId)) {
+            return res.status(400).json({ error: 'Invalid record ID' });
         }
 
-        const { AppointmentDateTime, Venue, RoomNumber, DoctorID } = req.body;
+        const { RecordDateTime, Venue, RoomNumber, DoctorID } = req.body;
 
         // Validate required fields
-        if (!AppointmentDateTime || !Venue || !RoomNumber || !DoctorID) {
+        if (!RecordDateTime || !Venue || !RoomNumber || !DoctorID) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        const success = await CyModel.updateAppointment(appointmentId, {
-            AppointmentDateTime,
+        const success = await CyModel.updateAppointmentRecord(recordId, {
+            RecordDateTime,
             Venue,
             RoomNumber,
             DoctorID
         });
 
         if (!success) {
-            return res.status(404).json({ error: 'Appointment not found' });
+            return res.status(404).json({ error: 'Appointment record not found' });
         }
 
-        res.json({ message: 'Appointment updated successfully' });
+        res.json({ message: 'Appointment record updated successfully' });
     } catch (err) {
-        console.error('Error in updateAppointment:', err);
-        res.status(500).json({ error: 'Failed to update appointment' });
+        console.error('Error in updateAppointmentRecord:', err);
+        res.status(500).json({ error: 'Failed to update appointment record' });
     }
 }
 
-// Delete an appointment
-async function deleteAppointment(req, res) {
+// Delete past appointments
+async function deleteAppointmentRecord(req, res) {
     try {
-        const appointmentId = parseInt(req.params.id);
-        if (isNaN(appointmentId)) {
-            return res.status(400).json({ error: 'Invalid appointment ID' });
+        const recordId = parseInt(req.params.id);
+        if (isNaN(recordId)) {
+            return res.status(400).json({ error: 'Invalid record ID' });
         }
 
-        const success = await CyModel.deleteAppointment(appointmentId);
+        const success = await CyModel.deleteAppointmentRecord(recordId);
         if (!success) {
-            return res.status(404).json({ error: 'Appointment not found' });
+            return res.status(404).json({ error: 'Appointment record not found' });
         }
 
-        res.json({ message: 'Appointment deleted successfully' });
+        res.json({ message: 'Appointment record deleted successfully' });
     } catch (err) {
-        console.error('Error in deleteAppointment:', err);
-        res.status(500).json({ error: 'Failed to delete appointment' });
+        console.error('Error in deleteAppointmentRecord:', err);
+        res.status(500).json({ error: 'Failed to delete appointment record' });
     }
 }
 
@@ -168,10 +114,8 @@ async function getAllDoctors(req, res) {
 module.exports = {
     getAllPatients,
     getPatientById,
-    updatePatient,
-    deletePatient,
-    getPatientAppointments,
-    updateAppointment,
-    deleteAppointment,
+    getAppointmentRecord,
+    updateAppointmentRecord,
+    deleteAppointmentRecord,
     getAllDoctors
 }

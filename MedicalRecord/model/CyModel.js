@@ -52,104 +52,52 @@ class CyModel {
         }
     }
 
-    // Update patient information
-    static async updatePatient(patientId, patientData) {
-        try {
-            await sql.connect(dbConfig);
-            const request = new sql.Request();
-            request.input('PatientID', sql.Int, patientId);
-            request.input('FullName', sql.VarChar(255), patientData.FullName);
-            request.input('DateOfBirth', sql.Date, patientData.DateOfBirth);
-            request.input('ContactNumber', sql.VarChar(20), patientData.ContactNumber);
-            request.input('Email', sql.VarChar(255), patientData.Email);
-            request.input('Address', sql.VarChar(500), patientData.Address);
-            
-            const result = await request.query(`
-                UPDATE Patients 
-                SET FullName = @FullName,
-                    DateOfBirth = @DateOfBirth,
-                    ContactNumber = @ContactNumber,
-                    Email = @Email,
-                    Address = @Address
-                WHERE PatientID = @PatientID
-            `);
-            
-            await sql.close();
-            return result.rowsAffected[0] > 0;
-        } catch (err) {
-            console.error('Error updating patient:', err);
-            await sql.close();
-            throw err;
-        }
-    }
-
-    // Delete a patient
-    static async deletePatient(patientId) {
-        try {
-            await sql.connect(dbConfig);
-            const request = new sql.Request();
-            request.input('PatientID', sql.Int, patientId);
-            
-            const result = await request.query(`
-                DELETE FROM Patients 
-                WHERE PatientID = @PatientID
-            `);
-            
-            await sql.close();
-            return result.rowsAffected[0] > 0;
-        } catch (err) {
-            console.error('Error deleting patient:', err);
-            await sql.close();
-            throw err;
-        }
-    }
-
-    // Get all appointments for a specific patient
-    static async getPatientAppointments(patientId) {
+    // Get all past appointments for a specific patient
+    static async getAppointmentRecord(patientId) {
         try {
             await sql.connect(dbConfig);
             const request = new sql.Request();
             request.input('PatientID', sql.Int, patientId);
             const result = await request.query(`
                 SELECT 
-                    a.AppointmentID,
-                    a.AppointmentDateTime,
-                    a.Venue,
-                    a.RoomNumber,
+                    r.RecordID,
+                    r.RecordDateTime,
+                    r.Venue,
+                    r.RoomNumber,
                     d.FullName as DoctorName,
                     d.DoctorID
-                FROM Appointments a
-                INNER JOIN Doctors d ON a.DoctorID = d.DoctorID
-                WHERE a.PatientID = @PatientID
-                ORDER BY a.AppointmentDateTime DESC
+                FROM MedicalRecords r
+                INNER JOIN Doctors d ON r.DoctorID = d.DoctorID
+                WHERE r.PatientID = @PatientID
+                ORDER BY r.RecordDateTime DESC
             `);
             await sql.close();
             return result.recordset;
         } catch (err) {
-            console.error('Error fetching patient appointments:', err);
+            console.error('Error fetching patient records:', err);
             await sql.close();
             throw err;
         }
     }
 
-    // Update an appointment
-    static async updateAppointment(appointmentId, appointmentData) {
+    // Update past appointments
+    static async updateAppointmentRecord(recordId, recordData) {
         try {
             await sql.connect(dbConfig);
             const request = new sql.Request();
-            request.input('AppointmentID', sql.Int, appointmentId);
-            request.input('AppointmentDateTime', sql.DateTime, appointmentData.AppointmentDateTime);
-            request.input('Venue', sql.VarChar(255), appointmentData.Venue);
-            request.input('RoomNumber', sql.VarChar(10), appointmentData.RoomNumber);
-            request.input('DoctorID', sql.Int, appointmentData.DoctorID);
+            request.input('RecordID', sql.Int, recordId);
+            request.input('RecordDateTime', sql.DateTime, recordData.RecordDateTime);
+            request.input('Venue', sql.VarChar(255), recordData.Venue);
+            request.input('RoomNumber', sql.VarChar(10), recordData.RoomNumber);
+            request.input('DoctorID', sql.Int, recordData.DoctorID);
             
             const result = await request.query(`
-                UPDATE Appointments 
-                SET AppointmentDateTime = @AppointmentDateTime,
+                UPDATE MedicalRecords
+                SET RecordDateTime = @RecordDateTime,
                     Venue = @Venue,
                     RoomNumber = @RoomNumber,
                     DoctorID = @DoctorID
-                WHERE AppointmentID = @AppointmentID
+                WHERE RecordID = @RecordID
             `);
             
             await sql.close();
@@ -161,16 +109,16 @@ class CyModel {
         }
     }
 
-    // Delete an appointment
-    static async deleteAppointment(appointmentId) {
+    // Delete past appointments
+    static async deleteAppointmentRecord(recordId) {
         try {
             await sql.connect(dbConfig);
             const request = new sql.Request();
-            request.input('AppointmentID', sql.Int, appointmentId);
+            request.input('RecordID', sql.Int, recordId);
             
             const result = await request.query(`
-                DELETE FROM Appointments 
-                WHERE AppointmentID = @AppointmentID
+                DELETE FROM MedicalRecords
+                WHERE RecordID = @RecordID
             `);
             
             await sql.close();
