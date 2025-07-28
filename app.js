@@ -6,10 +6,12 @@ const cors = require('cors');
 dotenv.config();
 
 const medicationController = require('../BED-SPM-Assignment_Jack/MedicalTracker/controller/JcController');
-//const {
-//    validateMedication,
-//    validatePatientID,
-//} = require('../BED-SPM-Assignment/middleware/medicalValidation'); 
+const {
+    validateTracker,
+    validateTrackerID,
+    validatePatientnMedicationID,
+    validatePatientID,
+} = require('../BED-SPM-Assignment_Jack/middleware/medicalValidation'); 
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,16 +19,16 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
-app.use(express.static(path.join(__dirname, 'public'))); 
+app.use(express.static(path.join(__dirname, '../BED-SPM-Assignment_Jack/FrontEnd'))); 
 app.use(cors()); 
 
 
-// Routes for Tracker
-app.get('/Tracker', medicationController.getAllMedications);
-app.get('/Tracker/:PatientID', medicationController.getMedicationById);
-app.post('/Tracker', medicationController.createMedication); 
-app.put('/Tracker/:PatientID/:MedicationID', medicationController.updateMedication);
-app.delete('/Tracker/:PatientID/:MedicationID', medicationController.deleteMedication);
+// Routing for Tracker
+app.get('/Tracker',medicationController.getAllMedications);
+app.get('/Tracker/:PatientID', validatePatientID ,medicationController.getMedicationById);
+app.post('/Tracker', validateTracker ,medicationController.createMedication); 
+app.put('/Tracker/:PatientID/:MedicationID', validatePatientnMedicationID ,medicationController.updateMedication);
+app.delete('/Tracker/:PatientID/:MedicationID', validatePatientnMedicationID ,medicationController.deleteMedication);
 
 
 app.listen(port, () => {
