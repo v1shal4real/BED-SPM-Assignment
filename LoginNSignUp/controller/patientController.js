@@ -1,5 +1,6 @@
-
 const Joi = require('joi');
+const bcrypt = require('bcryptjs');
+
 const patientModel = require('../models/patientModel');
 
 const signupSchema = Joi.object({
@@ -16,6 +17,9 @@ exports.signup = async (req, res) => {
     const { error, value } = signupSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
+    const salt = await bcrypt.genSalt(10);
+    value.password = await bcrypt.hash(value.password, salt);
+
     const patientId = await patientModel.addPatient(value);
 
     res.status(201).json({ message: 'Sign up successful!', patientId });
@@ -26,17 +30,24 @@ exports.signup = async (req, res) => {
 };
 
 
+
 exports.getProfile = async (req, res) => {
   try {
     const patientId = req.params.id;
     const profile = await patientModel.getPatientById(patientId);
     if (!profile) return res.status(404).json({ error: 'Patient not found' });
+
+    if (profile.DateOfBirth && profile.DateOfBirth.toISOString) {
+      profile.DateOfBirth = profile.DateOfBirth.toISOString().split('T')[0];
+    }
+
     res.json(profile);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error fetching profile.' });
   }
 };
+
 exports.getAllPatients = async (req, res) => {
   try {
     const patients = await patientModel.getAllPatients();
@@ -50,7 +61,7 @@ exports.getAllPatients = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const patientId = req.params.id;
-    // You can add Joi validation here if you wish
+  
     await patientModel.updatePatient(patientId, req.body);
     res.json({ message: "Profile updated successfully!" });
   } catch (err) {
