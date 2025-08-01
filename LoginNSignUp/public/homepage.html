@@ -1,74 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
-    <title>Home</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css"/>
+  <title>Home</title>
 </head>
-<body>
-    <header>
-        <div class="header-top">
-        <div class="header-top-container">
-            <div class="header-contact">
-            <span>(+65)</span>
-            <span>English</span>
-            </div>
-            <p class="header-motto">Better Health Begins Here.</p>
-            <i class='bx bx-user' id="profile-icon"></i>
-            </a>
-        </div>
-        </div>
-        <div class="nav">
-        <div class="nav-logo">
-            <h2>Anywhere<span>Doctor</span></h2>
-        </div>
-        <div class="nav-menu" id="nav-menu">
-            <ul class="nav-list">
-            <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
-            <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
-            <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
-            <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
-            <li class="nav-item"><a href="/list.html" class="nav-link">Tracker</a></li>
-            </ul>
-            <div class="header-search" style="position: relative;">
-                <input type="text" placeholder="Search..." class="form-input" id="search-input">
-                <i class='bx bx-search-alt-2' id="search-icon"></i>
-                <!-- Suggestions container -->
-                <div class="search-suggestions" id="search-suggestions"></div>
-            </div>
-            <div class="header-user-actions">
-            <a href="wishlist.html" class="header-action-btn">
-                <i class='bx bxs-heart' style="color: red;"></i>
-                <span class="count"></span>
-            </a>
-            <a href="chats.html" class="header-action-btn">
-                <i class='bx bx-message-square-dots' style="color: black;"></i>
-                <span class="count"></span>
-            </a>
-            </div>
-            <div class="header-menu">
-            <i class='bx bx-menu'></i>
-            </div>
-        </div>
-        </div>
-    </header>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const profileIcon = document.getElementById('profile-icon');
-        if (profileIcon) {
-            profileIcon.addEventListener('click', function() {
-            const patientId = localStorage.getItem('patientId');
-        if (patientId) {
-                window.location.href = `profile.html?id=${patientId}`;
-            } else {
-                alert('Please sign up first.');
-            }
-        });
-    }
-});
-</script>
+<style>
+.articles-section {
+  padding: 30px 20px;
+  background-color: #f9f9f9;
+  margin-top: 20px;
+  border-top: 2px solid #ddd;
+}
 
+.articles-section h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.articles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Individual article cards */
+.article-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-left: 5px solid #3c91e6;
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.article-card:hover {
+  transform: scale(1.01);
+}
+
+.article-card h3 {
+  font-size: 18px;
+  color: #222;
+  margin: 0 0 8px;
+}
+
+.article-card p {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.article-card a {
+  font-size: 14px;
+  color: #1a73e8;
+  text-decoration: underline;
+}</style>
+<body>
+  <header>
+    <div class="header-top">
+      <div class="header-top-container">
+        <div class="header-contact">
+          <span>(+65)</span>
+          <span>English</span>
+        </div>
+        <p class="header-motto">Better Health Begins Here.</p>
+        <i class='bx bx-user' id="profile-icon"></i>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-logo">
+        <h2>Anywhere<span>Doctor</span></h2>
+      </div>
+      <div class="nav-menu" id="nav-menu">
+        <ul class="nav-list">
+          <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+          <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+          <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+          <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
+          <li class="nav-item"><a href="/list.html" class="nav-link">Tracker</a></li>
+        </ul>
+        <div class="header-search" style="position: relative;">
+          <input type="text" placeholder="Search..." class="form-input" id="search-input">
+          <i class='bx bx-search-alt-2' id="search-icon"></i>
+          <div class="search-suggestions" id="search-suggestions"></div>
+        </div>
+        <div class="header-user-actions">
+          <a href="wishlist.html" class="header-action-btn">
+            <i class='bx bxs-heart' style="color: red;"></i>
+            <span class="count"></span>
+          </a>
+          <a href="chats.html" class="header-action-btn">
+            <i class='bx bx-message-square-dots' style="color: black;"></i>
+            <span class="count"></span>
+          </a>
+        </div>
+        <div class="header-menu">
+          <i class='bx bx-menu'></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Health Articles Section -->
+  <main>
+    <section class="articles-section">
+      <h2>Latest Health Articles</h2>
+      <div style="text-align: center; margin-bottom: 10px;">
+        <a href="saved-articles.html" class="nav-link" style="font-size: 15px; text-decoration: underline; color: #1a73e8;">View Saved Articles</a>
+      </div>
+      <div id="articles-container" class="articles-container">
+        <!-- Articles will be inserted here -->
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Profile redirect
+      const profileIcon = document.getElementById('profile-icon');
+      if (profileIcon) {
+        profileIcon.addEventListener('click', function () {
+          const patientId = localStorage.getItem('patientId');
+          if (patientId) {
+            window.location.href = `profile.html?id=${patientId}`;
+          } else {
+            alert('Please sign up first.');
+          }
+        });
+      }})
+      // Fetch and display health articles
+      document.addEventListener('DOMContentLoaded', function () {
+      fetch('/api/articles')
+  .then(response => response.json())
+  .then(data => {
+    const container = document.getElementById('articles-container');
+    if (!container || !data.articles) return;
+
+    const patientId = localStorage.getItem('patientId');
+    const articlesToShow = data.articles.slice(0, 4); // show only 4 articles
+
+    articlesToShow.forEach(article => {
+      const articleEl = document.createElement('div');
+      articleEl.classList.add('article-card');
+
+      articleEl.innerHTML = `
+        <h3>${article.title}</h3>
+        <p>${article.description || 'No description available.'}</p>
+        <a href="${article.url}" target="_blank">Read More</a>
+        <button class="save-btn" style="margin-top: 10px;">Save</button>
+      `;
+
+      // Add Save button logic
+      const saveBtn = articleEl.querySelector('.save-btn');
+      saveBtn.addEventListener('click', () => {
+        if (!patientId) {
+          alert('Please sign up or log in first.');
+          return;
+        }
+
+        fetch('/api/saved-articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId,
+            title: article.title,
+            description: article.description,
+            url: article.url
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message || 'Article saved!');
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saved';
+        })
+        .catch(err => {
+          console.error('Save error:', err);
+        });
+      });
+
+      container.appendChild(articleEl);
+    });
+  })
+  .catch(err => {
+    console.error('Error loading articles:', err);
+  });
+
+    });
+  </script>
 </body>
 </html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css"/>
+  <title>Saved Articles</title>
+</head>
+<style>
+.articles-section {
+  padding: 30px 20px;
+  background-color: #f9f9f9;
+  margin-top: 20px;
+  border-top: 2px solid #ddd;
+}
+
+.articles-section h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.articles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.article-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-left: 5px solid #3c91e6;
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.article-card:hover {
+  transform: scale(1.01);
+}
+
+.article-card h3 {
+  font-size: 18px;
+  color: #222;
+  margin: 0 0 8px;
+}
+
+.article-card p {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.article-card a {
+  font-size: 14px;
+  color: #1a73e8;
+  text-decoration: underline;
+}
+</style>
+<body>
+  <!-- 🧭 Navbar (copied from homepage) -->
+  <header>
+    <div class="header-top">
+      <div class="header-top-container">
+        <div class="header-contact">
+          <span>(+65)</span>
+          <span>English</span>
+        </div>
+        <p class="header-motto">Better Health Begins Here.</p>
+        <i class='bx bx-user' id="profile-icon"></i>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-logo">
+        <h2>Anywhere<span>Doctor</span></h2>
+      </div>
+      <div class="nav-menu" id="nav-menu">
+        <ul class="nav-list">
+          <li class="nav-item"><a href="homepage.html" class="nav-link">Home</a></li>
+          <li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
+          <li class="nav-item"><a href="products.html" class="nav-link">Medication</a></li>
+          <li class="nav-item"><a href="list.html" class="nav-link">Appointments</a></li>
+          <li class="nav-item"><a href="list.html" class="nav-link">Tracker</a></li>
+        </ul>
+        <div class="header-user-actions">
+          <a href="wishlist.html" class="header-action-btn">
+            <i class='bx bxs-heart' style="color: red;"></i>
+          </a>
+          <a href="chats.html" class="header-action-btn">
+            <i class='bx bx-message-square-dots' style="color: black;"></i>
+          </a>
+        </div>
+        <div class="header-menu">
+          <i class='bx bx-menu'></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 📚 Saved Articles Section -->
+  <main>
+    <section class="articles-section">
+      <h2>Saved Articles</h2>
+      <div id="saved-articles-container" class="articles-container">
+        <!-- Saved articles will appear here -->
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const patientId = localStorage.getItem('patientId');
+      if (!patientId) {
+        alert('Please log in to view saved articles.');
+        return;
+      }
+
+      fetch(`/api/saved-articles/${patientId}`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('saved-articles-container');
+          if (!container || !data.articles) return;
+
+          data.articles.forEach(article => {
+            const articleEl = document.createElement('div');
+            articleEl.classList.add('article-card');
+            articleEl.innerHTML = `
+              <h3>${article.title}</h3>
+              <p>${article.description || 'No description available.'}</p>
+              <a href="${article.url}" target="_blank">Read More</a>
+            `;
+            container.appendChild(articleEl);
+          });
+        })
+        .catch(err => {
+          console.error('Error fetching saved articles:', err);
+        });
+    });
+  </script>
+</body>
+</html>
