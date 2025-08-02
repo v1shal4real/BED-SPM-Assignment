@@ -13,11 +13,31 @@ document.getElementById('loginForm').addEventListener('submit', async function (
 
     const data = await res.json();
 
+    // Debug logs
+    console.log('Email:', email);
+    console.log('API response:', data);
+    console.log('Password entered:', password);
+    console.log('Response status:', res.status);
+
     if (res.ok) {
+      console.log('Login successful, storing data and redirecting...');
       localStorage.setItem('token', data.token);
-      localStorage.setItem('patientId', data.patientId);
-      alert('Login successful!');
-      window.location.href = '/homepage.html';
+      localStorage.setItem('role', data.role);      
+      localStorage.setItem('id', data.id);
+
+      console.log('Stored role:', data.role);
+      console.log('About to redirect...');
+
+      if (data.role === 'patient') {
+        console.log('Redirecting to homepage.html');
+        window.location.href = '/html/homepage.html';
+      } else if (data.role === 'doctor') {
+        console.log('Redirecting to doctor homepage');
+        window.location.href = '/html/doctor-homepage.html';
+      } else {
+        console.log('No role match, role is:', data.role);
+        alert('Unknown user role: ' + data.role);
+      }
     } else {
       alert(data.message || 'Login failed. Please check your credentials.');
     }
@@ -26,11 +46,5 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     alert('Network error. Please try again.');
   }
 });
-
-console.log('Email:', email);
-console.log('User found:', user);
-console.log('Password entered:', password);
-console.log('Password hash in DB:', user?.PasswordHash);
-console.log('Response status:', res.status);
 
 

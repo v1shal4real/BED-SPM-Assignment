@@ -1,0 +1,178 @@
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css"/>
+  <title>Doctor Homepage</title>
+  <style>
+    .patients-section {
+      max-width: 800px;
+      margin: 40px auto 0 auto;
+      background: #f8fbff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(60,145,230,0.10);
+      padding: 40px 28px 32px 28px;
+    }
+    .patients-section h2 {
+      text-align: center;
+      color: #2563eb;
+      margin-bottom: 32px;
+      font-size: 2.2rem;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+    .patients-list-container {
+      overflow-x: auto;
+    }
+    .patients-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(60,145,230,0.04);
+    }
+    .patients-table th, .patients-table td {
+      padding: 18px 16px;
+      text-align: left;
+      font-size: 1.08rem;
+    }
+    .patients-table th {
+      background: linear-gradient(90deg, #3c91e6 60%, #2563eb 100%);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      letter-spacing: 0.5px;
+    }
+    .patients-table tr {
+      transition: box-shadow 0.2s, background 0.2s;
+    }
+    .patients-table tbody tr {
+      background: #f9fbfd;
+      border-bottom: 1px solid #e3e8ee;
+    }
+    .patients-table tbody tr:last-child {
+      border-bottom: none;
+    }
+    .patients-table tbody tr:hover {
+      background: #e3f0ff;
+      box-shadow: 0 2px 12px rgba(60,145,230,0.08);
+    }
+    .patients-table td {
+      color: #22223b;
+      font-weight: 500;
+    }
+    @media (max-width: 600px) {
+      .patients-section {
+        padding: 16px 2px;
+      }
+      .patients-table th, .patients-table td {
+        padding: 10px 4px;
+        font-size: 0.97rem;
+      }
+      .patients-section h2 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <!-- ...existing header/nav code... -->
+    <div class="header-top">
+      <div class="header-top-container">
+        <div class="header-contact">
+          <span>(+65)</span>
+          <span>English</span>
+        </div>
+        <p class="header-motto">Better Health Begins Here.</p>
+        <i class='bx bx-user' id="profile-icon"></i>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-logo">
+        <h2>Anywhere<span>Doctor</span></h2>
+      </div>
+      <div class="nav-menu" id="nav-menu">
+        <ul class="nav-list">
+          <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+          <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+          <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+          <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
+          <li class="nav-item"><a href="/list.html" class="nav-link">Tracker</a></li>
+        </ul>
+        <div class="header-search" style="position: relative;">
+          <input type="text" placeholder="Search..." class="form-input" id="search-input">
+          <i class='bx bx-search-alt-2' id="search-icon"></i>
+          <div class="search-suggestions" id="search-suggestions"></div>
+        </div>
+        <div class="header-user-actions">
+          <a href="wishlist.html" class="header-action-btn">
+            <i class='bx bxs-heart' style="color: red;"></i>
+            <span class="count"></span>
+          </a>
+          <a href="chats.html" class="header-action-btn">
+            <i class='bx bx-message-square-dots' style="color: black;"></i>
+            <span class="count"></span>
+          </a>
+        </div>
+        <div class="header-menu">
+          <i class='bx bx-menu'></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="patients-section">
+    <h2>All Patients</h2>
+    <div class="patients-list-container">
+      <table class="patients-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Patient Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody id="patientsTableBody">
+          <!-- Patient rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    // Fetch and display patients (replace endpoint as needed)
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch('http://localhost:3000/api/patients', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const patients = await res.json();
+        const tbody = document.getElementById('patientsTableBody');
+        tbody.innerHTML = '';
+        if (Array.isArray(patients) && patients.length > 0) {
+          patients.forEach((patient, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${idx + 1}</td>
+              <td>${patient.name || patient.FullName || patient.Name || '-'}</td>
+              <td>${patient.email || patient.Email || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No patients found.</td></tr>';
+        }
+      } catch (err) {
+        document.getElementById('patientsTableBody').innerHTML =
+          '<tr><td colspan="3" style="text-align:center;">Failed to load patients.</td></tr>';
+      }
+    });
+  </script>
+</body>
+</html>
