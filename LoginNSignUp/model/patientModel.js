@@ -1,9 +1,9 @@
 const sql = require('mssql');
-const dbConfig = require('../dbConfig');
+const dbConfig = require('../../dbConfig');
 
 exports.addPatient = async (patient) => {
   const sql = require('mssql');
-  const dbConfig = require('../dbConfig');
+  const dbConfig = require('../../dbConfig');
   let pool = await sql.connect(dbConfig);
   let result = await pool.request()
     .input('FullName', sql.NVarChar, patient.fullName)
@@ -30,7 +30,7 @@ exports.getPatientById = async (patientId) => {
 };
 exports.getAllPatients = async () => {
   const sql = require('mssql');
-  const dbConfig = require('../dbConfig');
+  const dbConfig = require('../../dbConfig');
   let pool = await sql.connect(dbConfig);
   let result = await pool.request()
     .query('SELECT PatientID, FullName, DateOfBirth, ContactNumber, Email, Address FROM Patients');
@@ -39,7 +39,7 @@ exports.getAllPatients = async () => {
 
 exports.updatePatient = async (patientId, patient) => {
   const sql = require('mssql');
-  const dbConfig = require('../dbConfig');
+  const dbConfig = require('../../dbConfig');
   let pool = await sql.connect(dbConfig);
   await pool.request()
     .input('PatientID', sql.Int, patientId)

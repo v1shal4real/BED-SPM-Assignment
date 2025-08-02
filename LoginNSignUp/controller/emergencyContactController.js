@@ -1,4 +1,4 @@
-const emergencyContactModel = require('../models/emergencyContactModel');
+const emergencyContactModel = require('../model/emergencyContactModel');
 
 exports.getContacts = async (req, res) => {
   const { patientId } = req.params;

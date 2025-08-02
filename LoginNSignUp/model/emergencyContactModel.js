@@ -1,5 +1,5 @@
 const sql = require('mssql');
-const dbConfig = require('../dbConfig');
+const dbConfig = require('../../dbConfig');
 
 exports.getContactsByPatientId = async (patientId) => {
   let pool = await sql.connect(dbConfig);

@@ -1,7 +1,7 @@
 const sql = require('mssql');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const dbConfig = require('../dbConfig');
+const dbConfig = require('../../dbConfig');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
 
