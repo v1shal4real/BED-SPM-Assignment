@@ -136,7 +136,7 @@ if (patientId) fetchContacts();
       if (response.ok) {
         showMessage('Changes saved!');
       setTimeout(() => {
-  window.location.href = '/homepage.html';
+  window.location.href = '/html/homepage.html';
       }, 1000); }
       else {
         showMessage(result.error || 'Update failed.', true);
@@ -145,5 +145,11 @@ if (patientId) fetchContacts();
       showMessage('Network error during save.', true);
     }
   };
+
+  document.getElementById('logoutBtn').onclick = function () {
+  localStorage.clear();
+  alert('Logged out');
+  window.location.href = '/html/login.html';
+};
 }
 localStorage.setItem('patientId', patientId);

@@ -32,7 +32,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     if (response.ok) {
       localStorage.setItem('patientId', result.patientId);
       alert('Sign up successful!');
-      window.location.href = "/profile.html?id=" + result.patientId;
+      window.location.href = "/html/profile.html?id=" + result.patientId;
     } else {
       alert(result.error || 'Sign up failed.');
     }
