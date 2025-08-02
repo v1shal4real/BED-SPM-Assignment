@@ -111,11 +111,100 @@ async function getAllDoctors(req, res) {
     }
 }
 
+// Get medical details for a patient
+async function getMedicalDetailsByPatient(req, res) {
+    try {
+        const patientId = parseInt(req.params.id);
+        if (isNaN(patientId)) {
+            return res.status(400).json({ error: 'Invalid patient ID' });
+        }
+
+        const details = await CyModel.getMedicalDetailsByPatient(patientId);
+        res.json(details);
+    } catch (err) {
+        console.error('Error in getMedicalDetailsByPatient:', err);
+        res.status(500).json({ error: 'Failed to fetch medical details' });
+    }
+}
+
+// Create new medical detail
+async function createMedicalDetail(req, res) {
+    try {
+        const { RecordID, Symptoms, Diagnosis, BloodPressure, Temperature, Allergies, LabResults, DoctorNotes, FollowUpRequired } = req.body;
+
+        if (!RecordID || !Diagnosis) {
+            return res.status(400).json({ error: 'RecordID and Diagnosis are required' });
+        }
+
+        const detailId = await CyModel.createMedicalDetail({
+            RecordID, Symptoms, Diagnosis, BloodPressure, Temperature, Allergies, LabResults, DoctorNotes, FollowUpRequired
+        });
+
+        res.status(201).json({ DetailID: detailId, message: 'Medical detail created successfully' });
+    } catch (err) {
+        console.error('Error in createMedicalDetail:', err);
+        res.status(500).json({ error: 'Failed to create medical detail' });
+    }
+}
+
+// Update medical detail
+async function updateMedicalDetail(req, res) {
+    try {
+        const detailId = parseInt(req.params.id);
+        if (isNaN(detailId)) {
+            return res.status(400).json({ error: 'Invalid detail ID' });
+        }
+
+        const { RecordID, Symptoms, Diagnosis, BloodPressure, Temperature, Allergies, LabResults, DoctorNotes, FollowUpRequired } = req.body;
+
+        if (!RecordID || !Diagnosis) {
+            return res.status(400).json({ error: 'RecordID and Diagnosis are required' });
+        }
+
+        const success = await CyModel.updateMedicalDetail(detailId, {
+            RecordID, Symptoms, Diagnosis, BloodPressure, Temperature, Allergies, LabResults, DoctorNotes, FollowUpRequired
+        });
+
+        if (!success) {
+            return res.status(404).json({ error: 'Medical detail not found' });
+        }
+
+        res.json({ message: 'Medical detail updated successfully' });
+    } catch (err) {
+        console.error('Error in updateMedicalDetail:', err);
+        res.status(500).json({ error: 'Failed to update medical detail' });
+    }
+}
+
+// Delete medical detail
+async function deleteMedicalDetail(req, res) {
+    try {
+        const detailId = parseInt(req.params.id);
+        if (isNaN(detailId)) {
+            return res.status(400).json({ error: 'Invalid detail ID' });
+        }
+
+        const success = await CyModel.deleteMedicalDetail(detailId);
+        if (!success) {
+            return res.status(404).json({ error: 'Medical detail not found' });
+        }
+
+        res.json({ message: 'Medical detail deleted successfully' });
+    } catch (err) {
+        console.error('Error in deleteMedicalDetail:', err);
+        res.status(500).json({ error: 'Failed to delete medical detail' });
+    }
+}
+
 module.exports = {
     getAllPatients,
     getPatientById,
     getAppointmentRecord,
     updateAppointmentRecord,
     deleteAppointmentRecord,
-    getAllDoctors
+    getAllDoctors,
+    getMedicalDetailsByPatient,
+    createMedicalDetail,
+    updateMedicalDetail,
+    deleteMedicalDetail
 }
