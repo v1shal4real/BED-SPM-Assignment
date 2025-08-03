@@ -1,0 +1,289 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@700&family=Lato:wght@400;600;700&family=League+Spartan:wght@600&display=swap');
+
+/* ========== Base Styles ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Lato', sans-serif;
+}
+body {
+    background-color: #f1f1f1;
+}
+ul {
+    list-style: none;
+}
+a {
+    text-decoration: none;
+}
+p {
+    line-height: 1.5rem;
+}
+
+/* ========== Header & Navigation ========== */
+.header-top {
+    background-color: #0F2658;
+    border-bottom: 1px solid black;
+    padding-block: 0.875rem;
+}
+.header-top-container {
+    max-width: 1320px;
+    margin-inline: auto;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.header-contact span,
+.header-motto,
+.header-top-action {
+    font-size: 0.85rem;
+    font-family: 'Lato', sans-serif;
+    letter-spacing: 1px;
+    font-weight: 500;
+    color: #fff;
+}
+.header-contact span:first-child {
+    margin-right: 1rem;
+}
+.header-top-action i {
+    margin-left: 1rem;
+    font-size: 1.2rem;
+    color: #fff;
+}
+.nav {
+    background-color: #f1f1f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    column-gap: 2rem;
+    padding: 0.8rem;
+}
+.nav-logo h2 {
+    font-family: 'Fira Sans', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #FD5F5F;
+    display: inline;
+    margin-left: 5rem;
+}
+.nav-logo h2 span {
+    color: red;
+    letter-spacing: 1px;
+}
+.nav-menu {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-left: 2.5rem;
+    max-width: 1200px;
+    padding: 0 2rem;
+}
+.nav-list {
+    display: flex;
+    align-items: center;
+    margin-right: auto;
+    column-gap: 2.5rem;
+    padding-left: 12px;
+}
+.nav-link {
+    color: #0F2658;
+    font-weight: 550;
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.9px;
+    transition: all 0.2s;
+}
+.active-link,
+.nav-link:hover {
+    color: #FD5F5F;
+}
+.header-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.header-search i {
+    position: absolute;
+    right: 10px;
+    font-size: 20px;
+    color: black;
+    cursor: pointer;
+}
+.form-input {
+    border: 1px solid black;
+    padding: 10px 35px 10px 15px;
+    height: 45px;
+    border-radius: 0.25rem;
+    font-size: 12px;
+    letter-spacing: 1px;
+    width: 250px;
+}
+.search-suggestions {
+    position: absolute;
+    top: 105%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: 'Lato', sans-serif;
+    border-radius: 5px;
+}
+.suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+.suggestion-item:hover {
+    background: #f0f0f0;
+}
+.header-user-actions {
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+}
+.header-user-actions a i {
+    font-size: 24px;
+    padding: 0.5rem;
+}
+.header-action-btn {
+    position: relative;
+    display: inline-block;
+}
+.header-action-btn .count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    color: #0F2658;
+    font-family: 'Lato', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 2px 6px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1;
+}
+.header-menu {
+    margin-left: 1rem;
+}
+.header-menu i {
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* ========== Section Title ========== */
+.section-title {
+    font-family: 'League Spartan', sans-serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #0F2658;
+    text-align: center;
+    margin-top: 4rem;
+    margin-bottom: 4rem; /* Increased gap below the title */
+    letter-spacing: 1px;
+}
+
+/* ========== Cart Box & Items ========== */
+.cart-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 2rem;
+}
+.cart-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 1rem 0;
+}
+.cart-item:last-child {
+    border-bottom: none;
+}
+.cart-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-right: 1.5rem;
+}
+.cart-info {
+    flex: 1;
+}
+.cart-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0F2658;
+}
+.cart-qty {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+.cart-price {
+    font-size: 1rem;
+    color: #007c91;
+    font-weight: 700;
+}
+.cart-remove {
+    background: #E63946;
+    color: #fff;
+    border: none;
+    border-radius: 0.3rem;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    font-weight: 700; /* Increased font weight */
+}
+
+/* ========== Cart Footer ========== */
+.cart-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+.back-to-store-btn {
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    color: #111;
+    text-decoration: underline;
+    font-weight: 600;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+}
+.back-to-store-btn:hover {
+    color: #0F2658;
+    text-decoration: underline;
+}
+.cart-total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #007c91;
+}
+.cart-qty-input {
+    width: 34px;           /* was 48px */
+    padding: 3px 5px;      /* was 4px 8px */
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.2rem;
+    margin-left: 8px;
+    text-align: center;
+}

@@ -1,43 +1,61 @@
-const express = require('express');
-const sql = require('mssql');
-const dotenv = require('dotenv');
-const path = require('path');
-const cors = require('cors');
+// app.js
+const express = require("express");
+const path = require("path");
+const dotenv = require("dotenv");
+const sql = require("mssql");
+const multer = require("multer");
+
 dotenv.config();
 
-const medicationController = require('../BED-SPM-Assignment_Jack/MedicalTracker/controller/JcController');
-//const {
-//    validateMedication,
-//    validatePatientID,
-//} = require('../BED-SPM-Assignment/middleware/medicalValidation'); 
+const upload = multer({ dest: "/tmp" });
+
+const {
+  fetchAllMeds,
+  fetchOneMed,
+  createMed,
+  updateMed,
+  deleteMed
+} = require("./MedicationStore/controller/KhairiController.js");  // Medication Store Controller    
+
+const {
+  addOrUpdateCart,
+  getCart,
+  updateCart,
+  removeFromCart
+} = require("./MedicationStore/controller/cartController.js");  
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// ─── Middleware ────────────────────────────────────────────────
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
-app.use(express.static(path.join(__dirname, 'public'))); 
-app.use(cors()); 
+// ─── Medications Routes ────────────────────────────────────────
+app.get   ("/medications",      fetchAllMeds);
+app.get   ("/medications/:id",  fetchOneMed);
+app.post  ("/medications",      upload.single("image"), createMed);
+app.put   ("/medications/:id",  upload.single("image"), updateMed);
+app.delete("/medications/:id",  deleteMed);
 
+// ─── Cart Routes ───────────────────────────────────────────────
+app.post   ("/api/cart",         addOrUpdateCart);      // Add or update (upsert) a medication in the cart
+app.get    ("/api/cart/:userId", getCart);              // View all items in a user’s cart
+app.put    ("/api/cart/update",  updateCart);           // Manually update quantity
+app.delete ("/api/cart/delete",  removeFromCart);       // Remove an item from the cart
 
-// Routes for Tracker
-app.get('/Tracker', medicationController.getAllMedications);
-app.get('/Tracker/:PatientID', medicationController.getMedicationById);
-app.post('/Tracker', medicationController.createMedication); 
-app.put('/Tracker/:PatientID/:MedicationID', medicationController.updateMedication);
-app.delete('/Tracker/:PatientID/:MedicationID', medicationController.deleteMedication);
+// ─── Static Files ──────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, "FrontEnd/html")));
+app.use(express.static(path.join(__dirname, "MedicationStore/public")));
+app.use("/css", express.static(path.join(__dirname, "FrontEnd/css")));
 
+// ─── Server Startup & Shutdown ────────────────────────────────
+app.listen(port, () =>
+  console.log(`Server listening on http://localhost:${port}`)
+);
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`Click http://localhost:${port}`);
-});
-
-
-process.on('SIGINT', async () => {
-    console.log('Server is gracefully shutting down');
-    await sql.close();
-    console.log('Database connections closed');
-    process.exit(0);
+process.on("SIGINT", async () => {
+  console.log("Shutting down…");
+  await sql.close();
+  process.exit(0);
 });
