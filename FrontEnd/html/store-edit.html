@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store-edit</title>
+    <link rel="stylesheet" href="/css/store.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+        <div class="header-top-container">
+            <div class="header-contact">
+            <span>(+65)</span>
+            <span>English</span>
+            </div>
+            <p class="header-motto">Better Health Begins Here.</p>
+            <a href="/login/login-signup.html" class="header-top-action">
+            Login<i class='bx bx-user'></i>
+            </a>
+        </div>
+        </div>
+        <div class="nav">
+        <div class="nav-logo">
+            <h2>Anywhere<span>Doctor</span></h2>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <ul class="nav-list">
+            <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+            <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
+            <li class="nav-item"><a href="/list.html" class="nav-link">Tracker</a></li>
+            </ul>
+            <div class="header-search" style="position: relative;">
+                <input type="text" placeholder="Search..." class="form-input" id="search-input">
+                <i class='bx bx-search-alt-2' id="search-icon"></i>
+                <!-- Suggestions container -->
+                <div class="search-suggestions" id="search-suggestions"></div>
+            </div>
+            <div class="header-user-actions">
+            <a href="/cart.html" class="header-action-btn">
+                <i class='bx bx-cart' style="color: #0F2658;"></i>
+                <span class="count"></span>
+            </a>
+            </a>
+            <a href="chats.html" class="header-action-btn">
+                <i class='bx bx-message-square-dots' style="color: black;"></i>
+                <span class="count"></span>
+            </a>
+            </div>
+            <div class="header-menu">
+            <i class='bx bx-menu'></i>
+            </div>
+        </div>
+        </div>
+    </header>
+    <main>
+        <h3 class="section-title">Edit Medication</h3>
+
+
+        <div class="edit-card">
+        <form id="editMedForm" enctype="multipart/form-data">
+            <div class="form-group">
+            <label for="med-name">Name</label>
+            <input type="text" id="med-name" name="name" value="" required>
+            </div>
+
+            <div class="form-group">
+            <label for="med-description">Description</label>
+            <textarea id="med-description" name="description" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+            <label for="med-price">Price (S$)</label>
+            <input type="number" id="med-price" name="price" step="0.01" value="">
+            </div>
+
+            <div class="form-group">
+            <label for="med-image">Image</label>
+            <input
+            type="file"
+            id="med-image"
+            name="image"
+            accept="image/*"
+            />
+            </div>
+
+            <div class="form-actions">
+            <button type="button" id="deleteMedBtn" class="btn btn-danger">Delete Medication</button>
+            <button type="submit" class="btn btn-primary">Confirm Edit</button>
+            </div>
+        </form>
+        </div>
+        <div id="notification" class="notification hidden"></div>
+  </main>
+<script src="/store.js" defer></script>
+</body>
+</html>
