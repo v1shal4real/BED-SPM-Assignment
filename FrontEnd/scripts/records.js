@@ -330,10 +330,6 @@ function viewMedicalDetail(detailId) {
                 <strong>Doctor Notes:</strong>
                 <div style="margin-top: 5px;">${detail.DoctorNotes || 'N/A'}</div>
             </div>
-            <div class="form-buttons" style="margin-top: 20px;">
-                <button onclick="editMedicalDetail(${detail.DetailID}); closeMedicalDetailViewModal();" class="btn-primary">Edit</button>
-                <button onclick="deleteMedicalDetail(${detail.DetailID}); closeMedicalDetailViewModal();" class="btn btn-delete">Delete</button>
-            </div>
         </div>
     `;
 

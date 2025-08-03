@@ -479,7 +479,7 @@ tbody tr {
     margin: 5% auto;
     padding: 20px;
     border-radius: 8px;
-    width: 80%;
+    width: 100%;
     max-width: 500px;
     position: relative;
 }
@@ -499,7 +499,7 @@ tbody tr {
 
 /* Form Styles */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 0px;
 }
 
 .form-group label {
@@ -522,6 +522,7 @@ tbody tr {
 .form-buttons {
     display: flex;
     gap: 10px;
+    margin-top: 10px;
     justify-content: flex-end;
 }
 
