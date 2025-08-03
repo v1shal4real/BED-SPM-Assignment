@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emergency Information Profile</title>
+  <style>
+    body {
+      background: #e6f2ff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #13325c;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 450px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 32px rgba(38, 90, 167, 0.11);
+      padding: 32px 24px 24px 24px;
+    }
+    h2 {
+      color: #2563eb;
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      margin-top: 14px;
+      font-size: 1rem;
+      color: #2563eb;
+      font-weight: 500;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      border: 1px solid #bcd0ef;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #f6f9ff;
+      color: #13325c;
+      transition: border 0.2s;
+    }
+    input:focus, textarea:focus {
+      border: 1.5px solid #2563eb;
+      outline: none;
+      background: #e6f2ff;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 1.07rem;
+      font-weight: 600;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(38, 90, 167, 0.08);
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #1e429f;
+    }
+    .readonly-field {
+      background: #eaf2fa;
+      color: #7e9ab8;
+      border: none;
+      font-weight: bold;
+    }
+    .btn.delete {
+      background: #e53935;
+      margin-top: 12px;
+    }
+    .btn.delete:hover {
+      background: #a72822;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Emergency Information</h2>
+    <label for="patientName">Patient Name</label>
+    <input type="text" id="patientName" class="readonly-field" readonly>
+
+    <label for="dob">Date of Birth</label>
+    <input type="date" id="dob">
+
+    <label for="bloodType">Blood Type</label>
+    <input type="text" id="bloodType" placeholder="e.g. A+, O-">
+
+    <label for="chronic">Chronic Conditions</label>
+    <textarea id="chronic" rows="2" placeholder="e.g. Hypertension, Diabetes"></textarea>
+
+    <label for="allergies">Allergies</label>
+    <textarea id="allergies" rows="2" placeholder="e.g. Penicillin, Nuts"></textarea>
+
+    <label for="doctorEmail">Doctor's Email</label>
+    <input type="email" id="doctorEmail" placeholder="e.g. dr.lim@clinic.com">
+
+    <button class="btn">Save Information</button>
+    <button id="deleteInfoBtn" class="btn delete">Delete Information</button>
+  </div>
+  <script src="/scripts/emergency-info.js"></script>
+</body>
+</html>
