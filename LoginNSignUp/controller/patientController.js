@@ -69,3 +69,33 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ error: "Error updating profile." });
   }
 };
+
+exports.resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+  if (!email || !newPassword) {
+    return res.status(400).json({ message: "Email and new password are required." });
+  }
+
+  try {
+    // Check if patient exists
+    let pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input('Email', sql.NVarChar, email)
+      .query('SELECT * FROM Patients WHERE Email = @Email');
+    const patient = result.recordset[0];
+    if (!patient) {
+      return res.status(404).json({ message: "No user found with that email." });
+    }
+
+    // Hash new password
+    const hash = await bcrypt.hash(newPassword, 10);
+
+    // Update password in DB
+    await patientModel.updatePasswordByEmail(email, hash);
+
+    res.json({ message: "Password reset successful!" });
+  } catch (err) {
+    console.error("Password reset error:", err);
+    res.status(500).json({ message: "Server error during password reset." });
+  }
+};

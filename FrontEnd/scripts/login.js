@@ -29,6 +29,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
       console.log('About to redirect...');
 
       if (data.role === 'patient') {
+        localStorage.setItem('patientId', data.id);
         console.log('Redirecting to homepage.html');
         window.location.href = '/html/homepage.html';
       } else if (data.role === 'doctor') {

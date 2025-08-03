@@ -59,3 +59,12 @@ exports.updatePatient = async (patientId, patient) => {
     `);
   return true;
 };
+
+exports.updatePasswordByEmail = async (email, passwordHash) => {
+  let pool = await sql.connect(dbConfig);
+  await pool.request()
+    .input('Email', sql.NVarChar, email)
+    .input('PasswordHash', sql.NVarChar, passwordHash)
+    .query('UPDATE Patients SET PasswordHash = @PasswordHash WHERE Email = @Email');
+  return true;
+};
