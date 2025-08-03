@@ -1,5 +1,17 @@
 const emergencyInfoModel = require('../model/emergencyInfoModel');
 
+// Get Info
+exports.getEmergencyInfo = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const info = await emergencyInfoModel.getEmergencyInfo(patientId);
+    if (!info) return res.json({}); // Not found, send empty object
+    res.json(info);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get emergency info.' });
+  }
+};
+
 // Create/Update (Upsert)
 exports.saveEmergencyInfo = async (req, res) => {
   try {
@@ -18,19 +30,7 @@ exports.saveEmergencyInfo = async (req, res) => {
   }
 };
 
-// Get Info
-exports.getEmergencyInfo = async (req, res) => {
-  try {
-    const { patientId } = req.params;
-    const info = await emergencyInfoModel.getEmergencyInfo(patientId);
-    if (!info) return res.json({});
-    res.json(info);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to get emergency info.' });
-  }
-};
-
-// Delete Info
+// Delete
 exports.deleteEmergencyInfo = async (req, res) => {
   try {
     const { patientId } = req.params;

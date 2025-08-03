@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="/FrontEnd/css/styles.css"/>
+  <link rel="stylesheet" href="/css/styles.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css"/>
   <title>Saved Articles</title>
 </head>
@@ -61,6 +61,22 @@
   color: #1a73e8;
   text-decoration: underline;
 }
+.clear-btn {
+  float: right;
+  background: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-left: 10px;
+  margin-top: -2px;
+  transition: background 0.18s;
+}
+.clear-btn:hover {
+  background: #b11a1a;
+}
 </style>
 <body>
   <!-- 🧭 Navbar (copied from homepage) -->
@@ -114,33 +130,65 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const patientId = localStorage.getItem('patientId');
-      if (!patientId) {
-        alert('Please log in to view saved articles.');
-        return;
+    const patientId = localStorage.getItem('patientId');
+    if (!patientId) {
+      alert('Please log in to view saved articles.');
+      return;
+    }
+
+    const container = document.getElementById('saved-articles-container');
+
+    // Helper to render all articles
+    function renderArticles(articles) {
+      container.innerHTML = '';
+      articles.forEach(article => {
+        const articleEl = document.createElement('div');
+        articleEl.classList.add('article-card');
+        articleEl.innerHTML = `
+          <h3>${article.title}</h3>
+          <p>${article.description || 'No description available.'}</p>
+          <a href="${article.url}" target="_blank">Read More</a>
+          <button class="clear-btn" title="Delete Article" data-id="${article.id}">
+            <i class='bx bx-x'></i>
+          </button>
+        `;
+        container.appendChild(articleEl);
+      });
+    }
+
+    // Fetch and display saved articles
+    fetch(`/api/saved-articles/${patientId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!container || !data.articles) return;
+        renderArticles(data.articles);
+      })
+      .catch(err => {
+        console.error('Error fetching saved articles:', err);
+      });
+
+    // Delegate clear button click (using event delegation)
+    container.addEventListener('click', async function (e) {
+      if (e.target.closest('.clear-btn')) {
+        const btn = e.target.closest('.clear-btn');
+        const articleId = btn.getAttribute('data-id');
+        if (!confirm('Delete this saved article?')) return;
+        try {
+          const res = await fetch(`/api/saved-articles/${articleId}`, { method: 'DELETE' });
+          if (res.ok) {
+            // Remove from DOM
+            btn.closest('.article-card').remove();
+          } else {
+            alert('Failed to delete article.');
+          }
+        } catch (err) {
+          alert('Failed to delete article.');
+          console.error(err);
+        }
       }
-
-      fetch(`/api/saved-articles/${patientId}`)
-        .then(res => res.json())
-        .then(data => {
-          const container = document.getElementById('saved-articles-container');
-          if (!container || !data.articles) return;
-
-          data.articles.forEach(article => {
-            const articleEl = document.createElement('div');
-            articleEl.classList.add('article-card');
-            articleEl.innerHTML = `
-              <h3>${article.title}</h3>
-              <p>${article.description || 'No description available.'}</p>
-              <a href="${article.url}" target="_blank">Read More</a>
-            `;
-            container.appendChild(articleEl);
-          });
-        })
-        .catch(err => {
-          console.error('Error fetching saved articles:', err);
-        });
     });
+  });
+
   </script>
 </body>
 </html>

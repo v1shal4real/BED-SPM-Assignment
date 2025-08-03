@@ -24,7 +24,7 @@ app.use(express.static(__dirname + '/FrontEnd'));
 app.use('/api', patientRoutes);
 app.use('/api/emergency-contacts', ecRoutes);
 app.use('/api/articles', articlesRoute); 
-app.use('/api/saved-articles', savedArticlesRoute);
+app.use('/api/', savedArticlesRoute);
 app.use('/api', loginRoute);
 app.use('/api/emergency-info', emergencyInfoRoute);
 

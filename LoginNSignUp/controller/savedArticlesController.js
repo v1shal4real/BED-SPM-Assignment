@@ -29,4 +29,21 @@ const getSavedArticles = async (req, res) => {
   }
 };
 
-module.exports = { saveArticle, getSavedArticles };
+const deleteArticle = async (req, res) => {
+  const { articleId } = req.params; // from the route
+  try {
+    await sql.query`
+      DELETE FROM SavedArticles WHERE id = ${articleId}
+    `;
+    res.json({ message: 'Deleted' });
+  } catch (err) {
+    console.error('Error deleting article:', err);
+    res.status(500).json({ error: 'Failed to delete article.' });
+  }
+};
+
+module.exports = {
+  saveArticle,
+  getSavedArticles,
+  deleteArticle // <-- Add this to exports
+};
