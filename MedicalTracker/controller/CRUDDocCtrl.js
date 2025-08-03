@@ -30,7 +30,7 @@ function verifyAdminToken(req, res, next) {
 // Create doctor
 async function createDoctor(req, res) {
     try {
-        const { name, email, tempPassword, role } = req.body;
+        const { name, email, tempPassword } = req.body;
         
         // Validate input
         if (!name || !email || !tempPassword) {
@@ -41,10 +41,9 @@ async function createDoctor(req, res) {
         const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
         const doctorData = {
-            fullName,
+            fullName: name, // ← FIX: Use name as fullName
             email,
-            passwordHash: hashedPassword,
-            role: role || 'doctor'
+            passwordHash: hashedPassword
         };
 
         const newDoctor = await doctorModel.createDoctor(doctorData);
@@ -53,7 +52,7 @@ async function createDoctor(req, res) {
             message: 'Doctor account created successfully',
             doctor: {
                 id: newDoctor.DoctorID,
-                name: `${newDoctor.fullName}`,
+                name: newDoctor.FullName, // ← FIX: Use FullName from database
                 email: newDoctor.EmailAddress,
             }
         });
@@ -77,8 +76,9 @@ async function getAllDoctors(req, res) {
         // Remove sensitive data
         const sanitizedDoctors = doctors.map(doctor => ({
             id: doctor.DoctorID,
-            name: `${doctor.fullName}`,
+            name: doctor.FullName, // ← FIX: Use FullName from database
             email: doctor.EmailAddress,
+            createdDate: doctor.CreatedDate
         }));
 
         res.status(200).json(sanitizedDoctors);
@@ -102,9 +102,8 @@ async function getDoctorById(req, res) {
         // Remove sensitive data
         const sanitizedDoctor = {
             id: doctor.DoctorID,
-            name: `${doctor.fullName}`,
+            name: doctor.FullName, // ← FIX: Use FullName from database
             email: doctor.EmailAddress,
-            role: doctor.Role,
             createdDate: doctor.CreatedDate
         };
 
@@ -122,6 +121,12 @@ async function updateDoctor(req, res) {
         const { id } = req.params;
         const updateData = req.body;
 
+        // Map name to fullName for database
+        if (updateData.name) {
+            updateData.fullName = updateData.name;
+            delete updateData.name;
+        }
+
         // If password is being updated, hash it
         if (updateData.password) {
             updateData.passwordHash = await bcrypt.hash(updateData.password, 10);
@@ -138,7 +143,7 @@ async function updateDoctor(req, res) {
             message: 'Doctor updated successfully',
             doctor: {
                 id: updatedDoctor.DoctorID,
-                name: `${updatedDoctor.fullNameullName}`,
+                name: updatedDoctor.FullName, // ← FIX: Use FullName from database
                 email: updatedDoctor.EmailAddress,
             }
         });

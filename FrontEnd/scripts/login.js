@@ -25,7 +25,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         window.location.href = '/html/homepage.html';
       } else if (data.role === 'doctor') {
         console.log('Redirecting to doctor homepage');
-        window.location.href = '/html/doctor-homepage.html';
+        window.location.href = '../html/homepage.html';
       } else if (data.role === 'admin') {
         console.log('Redirecting to admin homepage');
         window.location.href = '../html/CreateDoctor.html';

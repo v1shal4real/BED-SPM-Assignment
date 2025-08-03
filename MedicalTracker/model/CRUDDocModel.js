@@ -7,7 +7,7 @@ async function createDoctor(doctorData) {
     try {
         connection = await sql.connect(dbConfig);
 
-        const { fullname, email, passwordHash } = doctorData;
+        const { fullName, email, passwordHash } = doctorData; // Use fullName (camelCase)
 
         // Check if email already exists
         const existingDoctor = await connection.request()
@@ -20,7 +20,7 @@ async function createDoctor(doctorData) {
 
         // Insert new doctor
         const result = await connection.request()
-            .input('FullName', sql.NVarChar, fullname)
+            .input('FullName', sql.NVarChar, fullName) // Use fullName variable
             .input('EmailAddress', sql.NVarChar, email)
             .input('PasswordHash', sql.NVarChar, passwordHash)
             .query(`
@@ -101,11 +101,10 @@ async function updateDoctor(doctorId, updateData) {
         let updateFields = [];
         let params = {};
         
-        if (updateData.fullname) {
+        if (updateData.fullName) { // Use fullName (camelCase)
             updateFields.push('FullName = @FullName');
-            params.FullName = updateData.fullname;
+            params.FullName = updateData.fullName;
         }
-        
         
         if (updateData.email) {
             updateFields.push('EmailAddress = @EmailAddress');
@@ -133,7 +132,7 @@ async function updateDoctor(doctorId, updateData) {
             
         // Add all parameters
         Object.keys(params).forEach(key => {
-            request.input(key, params[key]);
+            request.input(key, sql.NVarChar, params[key]); // Add sql.NVarChar type
         });
         
         const result = await request.query(query);
