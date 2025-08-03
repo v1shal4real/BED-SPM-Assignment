@@ -1,4 +1,4 @@
-</html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -64,6 +64,20 @@
     .patients-table td {
       color: #22223b;
       font-weight: 500;
+    }
+    .btn-emer-info {
+      background: #2563eb;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      border: none;
+      display: inline-block;
+      transition: background 0.2s;
+    }
+    .btn-emer-info:hover {
+      background: #1e429f;
     }
     @media (max-width: 600px) {
       .patients-section {
@@ -135,6 +149,7 @@
             <th>#</th>
             <th>Patient Name</th>
             <th>Email</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody id="patientsTableBody">
@@ -162,15 +177,20 @@
               <td>${idx + 1}</td>
               <td>${patient.name || patient.FullName || patient.Name || '-'}</td>
               <td>${patient.email || patient.Email || '-'}</td>
+              <td>
+                <a href="emergency-info.html?patientId=${patient.PatientID || patient.id}" class="btn-emer-info">
+                  Emergency Info
+                </a>
+              </td>
             `;
             tbody.appendChild(tr);
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No patients found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No patients found.</td></tr>';
         }
       } catch (err) {
         document.getElementById('patientsTableBody').innerHTML =
-          '<tr><td colspan="3" style="text-align:center;">Failed to load patients.</td></tr>';
+          '<tr><td colspan="4" style="text-align:center;">Failed to load patients.</td></tr>';
       }
     });
   </script>

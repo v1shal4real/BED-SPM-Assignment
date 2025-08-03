@@ -1,5 +1,8 @@
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
+const dbConfig = require('../../dbConfig');
+const sql = require('mssql');
+
 
 const patientModel = require('../model/patientModel');
 
