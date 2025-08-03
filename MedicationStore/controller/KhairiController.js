@@ -14,10 +14,7 @@ const {
   getMedicationById,
   createMedication,
   updateMedication,
-  deleteMedication,
-  forceDeleteMedication,
-  hardDeleteMedication,
-  getMedicationReferences
+  deleteMedication
 } = require("../model/KhairiModels");
 
 // GET /medications
@@ -111,57 +108,10 @@ async function deleteMed(req, res) {
   }
 }
 
-// GET /medications/:id/references - Check what's referencing this medication
-async function getMedReferences(req, res) {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const references = await getMedicationReferences(id);
-    res.json({
-      medicationId: id,
-      references: references,
-      totalReferences: references.length,
-      medicalRecords: references.filter(r => r.ReferenceType === 'MedicalRecord'),
-      cartItems: references.filter(r => r.ReferenceType === 'CartItem')
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-}
-
-// DELETE /medications/:id/force - Force delete with cleanup
-async function forceDeleteMed(req, res) {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const ok = await forceDeleteMedication(id);
-    if (!ok) return res.status(404).json({ error: "Not found" });
-    res.status(200).json({ message: "Medication deleted successfully (cart items were automatically removed)" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-}
-
-// DELETE /medications/:id/hard - Hard delete without checking references
-async function hardDeleteMed(req, res) {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const ok = await hardDeleteMedication(id);
-    if (!ok) return res.status(404).json({ error: "Not found" });
-    res.status(200).json({ message: "Medication deleted successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-}
-
 module.exports = {
   fetchAllMeds,
   fetchOneMed,
   createMed,
   updateMed,
   deleteMed,
-  forceDeleteMed,
-  hardDeleteMed,
-  getMedReferences
 };

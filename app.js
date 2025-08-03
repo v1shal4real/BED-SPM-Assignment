@@ -14,10 +14,7 @@ const {
   fetchOneMed,
   createMed,
   updateMed,
-  deleteMed,
-  forceDeleteMed,
-  hardDeleteMed,
-  getMedReferences
+  deleteMed
 } = require("./MedicationStore/controller/KhairiController.js");  // Medication Store Controller    
 
 const {
