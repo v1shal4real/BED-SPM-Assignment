@@ -8,18 +8,25 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+
 const appointmentController = require("./controller/ZcController");
+const communityController = require("./controller/communityController");
+const healthController = require("./controller/healthTrackerController");
+
 const {
   validateAppointment,
   validateAppointmentId,
 } = require("../middleware/medicalValidation");
 
+
+
 app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../FrontEnd/html')));
+app.use('/css', express.static(path.join(__dirname, '../FrontEnd/css')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CRUD routes
+ // CRUD routes
 app.get("/appointments", appointmentController.getAllAppointments);
 app.get("/appointments/patient/:id", appointmentController.getAppointmentsByPatientID); // NEW: view for only logged-in user
 app.get("/appointments/:id", validateAppointmentId, appointmentController.getAppointmentById);
@@ -27,8 +34,19 @@ app.post("/appointments", validateAppointment, appointmentController.createAppoi
 app.put("/appointments/:id", validateAppointmentId, validateAppointment, appointmentController.updateAppointment);
 app.delete("/appointments/:id", validateAppointmentId, appointmentController.deleteAppointment);
 
+
+app.get("/community/:category", communityController.getMessagesByCategory);
+app.post("/community", communityController.createMessage);
+app.delete("/community/:id", communityController.deleteMessage);
+
+app.get("/health/:id", healthController.getHealthEntriesByPatientID); // GET all entries by patient
+app.post("/health", healthController.createHealthEntry); // CREATE new entry
+app.put("/health/:id", healthController.updateHealthEntry); // UPDATE entry
+app.delete("/health/:id", healthController.deleteHealthEntry); // DELETE entry
+
+
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '', '../FrontEnd/html/bookingAppointment.html'));
 });
 
 app.listen(port, () => {

@@ -1,0 +1,404 @@
+/* ========== NAVBAR CSS (NAMESPACED) ========== */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=League+Spartan:wght@100..900&display=swap');
+
+/* Universal for NAVBAR only */
+.site-navbar * {
+    box-sizing: border-box;
+    font-family: 'Lato', sans-serif;
+}
+.site-navbar ul{
+    list-style: none;
+}
+.site-navbar a{
+    text-decoration: none;
+}
+.site-navbar p{
+    line-height: 1.5rem;
+}
+
+/* Header & Nav */
+.site-navbar .header-top{
+    background-color: #0F2658;
+    border-bottom: 1px solid black;
+    padding-block: 0.875rem;
+}
+.site-navbar .header-top-container{
+    max-width: 1320px;
+    margin-inline: auto;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.site-navbar .header-contact span:first-child{
+    margin-right: 1rem;
+}
+.site-navbar .header-top-action i{
+    position: relative;
+    margin-left: 1rem;
+    font-size: 1.2rem;
+    color: #fff;
+}
+.site-navbar .header-contact span,
+.site-navbar .header-motto,
+.site-navbar .header-top-action{
+    font-size: 0.85rem;
+    font-family: 'Lato', sans-serif;
+    letter-spacing: 1px;
+    font-weight: 500;
+    color: #fff;
+}
+.site-navbar .nav,
+.site-navbar .nav-menu,
+.site-navbar .nav-list,
+.site-navbar .header-user-actions{
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+    padding-left: 12px;
+}
+.site-navbar .nav{
+    background-color: #f1f1f1;
+    justify-content: space-between;
+    column-gap: 2rem;
+    padding: 0.8rem;
+}
+.site-navbar .nav-logo h2 {
+    font-family: 'Fira Sans', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #FD5F5F; 
+    display: inline; 
+    margin-left: 5rem;
+}
+.site-navbar .nav-logo h2 span {
+    color: red; 
+    letter-spacing: 1px;
+}
+.site-navbar .nav-menu{
+    width: 100%;
+    margin-left: 2.5rem;
+}
+.site-navbar .nav-list{
+    margin-right: auto;
+    column-gap: 2.5rem;
+}
+.site-navbar .nav-link{
+    color: #0F2658;
+    font-weight: 550;
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.9px;
+    transition: all 0.2s;
+}
+.site-navbar .header-search{
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.site-navbar .header-search i{
+    position: absolute;
+    right: 10px;
+    font-size: 20px;
+    color: black;
+    cursor: pointer;
+}
+.site-navbar .form-input{
+    border: 1px solid black;
+    padding: 10px 35px 10px 15px;
+    padding-inline: 1rem;
+    height: 45px;
+    border-radius: 0.25rem;
+    font-size: 12px;
+    letter-spacing: 1px;
+    width: 250px;
+}
+.site-navbar .header-search .form-input{
+    border: 1px solid black;
+}
+.site-navbar .search-suggestions {
+    position: absolute;
+    top: 105%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: 'Lato', sans-serif;
+    border-radius: 5px;
+}
+.site-navbar .suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+.site-navbar .suggestion-item:last-child {
+    border-bottom: none;
+}
+.site-navbar .suggestion-item:hover {
+    background: #f0f0f0;
+}
+.site-navbar .active-link,
+.site-navbar .nav-link:hover{
+    color: #FD5F5F;
+}
+.site-navbar .header-user-actions a i{
+    font-size: 24px;
+    padding: 0.5rem;
+}
+.site-navbar .header-action-btn{
+    position: relative;
+    display: inline-block;  
+}
+.site-navbar .header-action-btn .count{
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%); 
+    color: #0F2658;
+    font-family: 'Lato', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 2px 6px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1;
+}
+.site-navbar .header-menu{
+    margin-left: 1rem;
+}
+.site-navbar .header-menu i{
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+/* Footer (if you use it in navbar) */
+.site-navbar footer{
+    font-family: 'Lato', sans-serif;
+    position: relative;
+    width: 100%;
+    background: #143F9A;
+    min-height: 100px;
+    padding: 20px 50px;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 300px;
+}
+.site-navbar footer .social-icons,
+.site-navbar footer .menu{
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+.site-navbar footer .social-icons li,
+.site-navbar footer .menu li{
+    list-style: none;
+}
+.site-navbar footer .social-icons li a{
+    font-size: 2rem;
+    color: #fff;
+    margin: 0 10px;
+    display: inline-block;
+    transition: 0.5s;
+}
+.site-navbar footer .social-icons li a:hover{
+    transform: translateY(-10px);
+}
+.site-navbar footer .menu li a{
+    letter-spacing: 0.9px;
+    font-size: 1rem;
+    color: #fff;
+    margin: 0 10px;
+    display: inline-block;
+    transition: 0.5s;
+    text-decoration: none;
+    opacity: 0.75;
+}
+.site-navbar footer .menu li a:hover{
+    opacity: 1;
+}
+.site-navbar footer p{
+    letter-spacing: 0.9px;
+    color: #fff;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 1em;
+}
+.site-navbar footer .wave{
+    position: absolute;
+    top: -100px;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: url(/FrontEnd/images/wave.png);
+    background-size: 1000px 100px;
+}
+.site-navbar footer .wave#wave1{
+    z-index: 1000;
+    opacity: 1;
+    bottom: 0;
+    animation: animateWave 4s linear infinite;
+}
+.site-navbar footer .wave#wave2{
+    z-index: 999;
+    opacity: 0.5;
+    bottom: 10px;
+    animation: animateWave_02 4s linear infinite;
+}
+.site-navbar footer .wave#wave3{
+    z-index: 1000;
+    opacity: 0.2;
+    bottom: 15px;
+    animation: animateWave 3s linear infinite;
+}
+.site-navbar footer .wave#wave4{
+    z-index: 999;
+    opacity: 0.7;
+    bottom: 20px;
+    animation: animateWave_02 3s linear infinite;
+}
+.site-navbar .nav-dropdown {
+  position: relative;
+}
+.site-navbar .dropdown-menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: #fff;
+  min-width: 180px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border-radius: 6px;
+  z-index: 100;
+  padding: 8px 0;
+}
+.site-navbar .dropdown-menu li {
+  list-style: none;
+}
+.site-navbar .dropdown-menu li a {
+  display: block;
+  padding: 10px 18px;
+  color: #0F2658;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.site-navbar .dropdown-menu li a:hover {
+  background: #f1f1f1;
+  color: #FD5F5F;
+}
+.site-navbar .nav-dropdown:hover .dropdown-menu {
+  display: block;
+}
+@keyframes animateWave{
+    0% { background-position-x: 1000px; }
+    100% { background-position-x: 0px; }
+}
+@keyframes animateWave_02{
+    0% { background-position-x: 1000px; }
+    100% { background-position-x: 0px; }
+}
+
+/* ========== END NAVBAR CSS ========== */
+
+/* ---- Your App/General CSS below ---- */
+
+/* Container padding */
+.container {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* Header */
+h2 {
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Calendar Container */
+#calendar {
+  max-width: 100%;
+  margin: 0 auto 1rem;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  min-height: 500px;
+}
+
+/* FullCalendar Button Style Overrides */
+.fc .fc-button-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+/* Doctor List */
+.available-doctors img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.available-doctors li {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.available-doctors li:hover {
+  background-color: #f1f1f1;
+}
+
+/* Table styles */
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: #f7f7fa;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.btn-warning, .btn-danger, .btn-info, .btn-primary, .btn-secondary {
+  min-width: 80px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 767px) {
+  .available-doctors img {
+    width: 40px;
+    height: 40px;
+  }
+  #calendar {
+    min-height: 350px;
+    padding: 0.5rem;
+  }
+}
+
+/* Alert messages */
+.alert {
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+.mt-3, .mt-4 {
+  margin-top: 1rem !important;
+}
+
+.mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+.ms-2 {
+  margin-left: 0.5rem !important;
+}

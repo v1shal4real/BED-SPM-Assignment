@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Appointment</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet"/>
+  <!-- Boxicons (for navbar icons) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+  <!-- Your CSS (navbar+app styles) -->
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="bg-light">
+  <!-- NAVBAR: Make sure you use class="site-navbar" -->
+  <header class="site-navbar">
+    <div class="header-top">
+      <div class="header-top-container">
+        <div class="header-contact">
+          <span>(+65)</span>
+          <span>English</span>
+        </div>
+        <p class="header-motto">Better Health Begins Here.</p>
+        <a href="/login/login-signup.html" class="header-top-action">
+          Login<i class='bx bx-user'></i>
+        </a>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-logo">
+        <h2>Anywhere<span>Doctor</span></h2>
+      </div>
+      <div class="nav-menu" id="nav-menu">
+        <ul class="nav-list">
+          <li class="nav-item"><a href="../html/index.html" class="nav-link">Home</a></li>
+          <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+          <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+          <li class="nav-item"><a href="/bookingAppointment.html" class="nav-link">Appointments</a></li>
+          <li class="nav-item nav-dropdown">
+            <a href="#" class="nav-link">Tracker <i class='bx bx-chevron-down'></i></a>
+            <ul class="dropdown-menu">
+              <li><a href="../html/TrackersMain.html">Medical Tracker</a></li>
+              <li><a href="/html/AppointmentTrackers.html">Appointment Tracker</a></li>
+              <li><a href="/healthTracker.html">Health Tracker</a></li>
+            </ul>
+          </li>
+        </ul>
+        <div class="header-user-actions">
+          <a href="wishlist.html" class="header-action-btn">
+            <i class='bx bxs-heart' style="color: red;"></i>
+            <span class="count"></span>
+          </a>
+          <a href="communityBoard.html" class="header-action-btn">
+            <i class='bx bx-message-square-dots' style="color: black;"></i>
+            <span class="count"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Book Appointment</h2>
+      <div>
+        <button class="btn btn-secondary me-2" onclick="history.back()">Back</button>
+        <a href="selectTime.html" class="btn btn-primary">+ Book Appointment</a>
+        <a href="viewAppointment.html" class="btn btn-info ms-2">View Appointments</a>
+        <button onclick="logout()" class="btn btn-danger ms-2">Logout</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8">
+        <div id="calendar"></div>
+      </div>
+      <div class="col-md-4">
+        <div class="card mb-3">
+          <div class="card-header">Available Doctors</div>
+          <ul class="list-group list-group-flush available-doctors" id="doctorList"></ul>
+        </div>
+        <div class="card">
+          <div class="card-header">Clinic Map</div>
+          <div id="clinicMap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    if (!localStorage.getItem('PatientID')) window.location.href = '../html/login.html';
+    function logout() {
+      localStorage.removeItem('PatientID');
+      window.location.href = '../html/login.html';
+    }
+  </script>
+  <!-- FullCalendar JS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Your custom script -->
+  <script src="calendar.js"></script>
+</body>
+</html>

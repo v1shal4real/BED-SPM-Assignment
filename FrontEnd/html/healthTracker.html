@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Health Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<header class="site-navbar">
+        <div class="header-top">
+        <div class="header-top-container">
+            <div class="header-contact">
+            <span>(+65)</span>
+            <span>English</span>
+            </div>
+            <p class="header-motto">Better Health Begins Here.</p>
+            <a href="/login/login-signup.html" class="header-top-action">
+            Login<i class='bx bx-user'></i>
+            </a>
+        </div>
+        </div>
+        <div class="nav">
+        <div class="nav-logo">
+            <h2>Anywhere<span>Doctor</span></h2>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <ul class="nav-list">
+            <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+            <li class="nav-item"><a href="/bookingAppointment.html" class="nav-link">Appointments</a></li>
+            <li class="nav-item nav-dropdown">
+              <a href="#" class="nav-link">Tracker <i class='bx bx-chevron-down'></i></a>
+              <ul class="dropdown-menu">
+                <li><a href="../html/TrackersMain.html">Medical Tracker</a></li>
+                <li><a href="/html/AppointmentTrackers.html">Appointment Tracker</a></li>
+                <li><a href="/healthTracker.html">Health Tracker</a></li>
+              </ul>
+            </li>
+            </ul>
+            <div class="header-search" style="position: relative;">
+                <input type="text" placeholder="Search..." class="form-input" id="search-input">
+                <i class='bx bx-search-alt-2' id="search-icon"></i>
+                <!-- Suggestions container -->
+                <div class="search-suggestions" id="search-suggestions"></div>
+            </div>
+            <div class="header-user-actions">
+            <a href="wishlist.html" class="header-action-btn">
+                <i class='bx bxs-heart' style="color: red;"></i>
+                <span class="count"></span>
+            </a>
+            <a href="communityBoard.html" class="header-action-btn">
+                <i class='bx bx-message-square-dots' style="color: black;"></i>
+                <span class="count"></span>
+            </a>
+            </div>
+            <div class="header-menu">
+            <i class='bx bx-menu'></i>
+            </div>
+        </div>
+        </div>
+    </header>
+<body class="bg-light">
+  <div class="container py-4">
+    <h2>My Health Tracker</h2>
+    <div class="mb-3">
+      <label for="filterRange"><strong>View Data for:</strong></label>
+      <select id="filterRange" class="form-select" style="max-width:200px;display:inline;">
+        <option value="week">Past Week</option>
+        <option value="month">Past Month</option>
+        <option value="year">Past Year</option>
+        <option value="all">All Time</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="metricSelect"><strong>Show Chart for:</strong></label>
+      <select id="metricSelect" class="form-select" style="max-width:200px;display:inline;">
+        <option value="BloodPressure">Blood Pressure (Systolic)</option>
+        <option value="HeartRate">Heart Rate</option>
+        <option value="BloodOxygen">Blood Oxygen</option>
+        <option value="Calories">Calories</option>
+        <option value="BloodSugar">Blood Sugar</option>
+      </select>
+    </div>
+    <canvas id="healthChart" height="80"></canvas>
+    <form id="healthForm" class="mb-4 row g-3">
+      <div class="col-md-2"><input type="date" id="date" class="form-control" required></div>
+      <div class="col-md-2"><input type="text" id="bp" class="form-control" placeholder="Blood Pressure (e.g. 120/80)"></div>
+      <div class="col-md-2"><input type="number" id="sugar" class="form-control" placeholder="Blood Sugar"></div>
+      <div class="col-md-2"><input type="number" id="oxy" class="form-control" placeholder="Oxygen %"></div>
+      <div class="col-md-2"><input type="number" id="hr" class="form-control" placeholder="Heart Rate"></div>
+      <div class="col-md-2"><input type="number" id="cal" class="form-control" placeholder="Calories"></div>
+      <div class="col-md-12"><button type="submit" class="btn btn-primary">Add Entry</button></div>
+    </form>
+    <div id="trackerMsg"></div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Blood Pressure</th>
+          <th>Blood Sugar</th>
+          <th>Oxygen</th>
+          <th>Heart Rate</th>
+          <th>Calories</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="trackerBody"></tbody>
+    </table>
+    <a href="bookingAppointment.html" class="btn btn-secondary mt-3">Back to Home</a>
+  </div>
+  <script>
+    if (!localStorage.getItem('PatientID')) window.location.href = 'login.html';
+    const patientID = localStorage.getItem('PatientID');
+    let allTrackerData = [];
+    let filter = "week";
+    let chart = null;
+    let editingId = null;
+
+    // -- Filtering logic --
+    document.getElementById('filterRange').addEventListener('change', function() {
+      filter = this.value;
+      renderTracker();
+    });
+
+    document.getElementById('metricSelect').addEventListener('change', drawChart);
+
+    // -- Alert/limit logic --
+    function isBPHigh(bp) {
+      if (!bp) return false;
+      const match = bp.match(/^(\d{2,3})\/(\d{2,3})$/);
+      if (!match) return false;
+      const sys = parseInt(match[1], 10), dia = parseInt(match[2], 10);
+      return sys > 140 || dia > 90 || sys < 90 || dia < 60;
+    }
+    function isSugarHigh(sugar) { return sugar > 10 || sugar < 3; }
+    function isOxyLow(oxy) { return oxy < 94; }
+    function isHRHigh(hr) { return hr > 100 || hr < 50; }
+    function isCalHigh(cal) { return cal > 3500; }
+
+    function renderTracker() {
+      const tbody = document.getElementById('trackerBody');
+      tbody.innerHTML = '';
+      let filtered = allTrackerData;
+      const now = new Date();
+      if (filter !== 'all') {
+        filtered = allTrackerData.filter(entry => {
+          const entryDate = new Date(entry.Date);
+          if (filter === 'week') return (now - entryDate) / (1000 * 3600 * 24) <= 7;
+          if (filter === 'month') return (now - entryDate) / (1000 * 3600 * 24) <= 31;
+          if (filter === 'year') return (now - entryDate) / (1000 * 3600 * 24) <= 366;
+          return true;
+        });
+      }
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No entries for this period.</td></tr>`;
+        if (chart) chart.destroy();
+        return;
+      }
+      filtered.forEach(entry => {
+        const bpAlert = isBPHigh(entry.BloodPressure);
+        const sugarAlert = isSugarHigh(entry.BloodSugar);
+        const oxyAlert = isOxyLow(entry.BloodOxygen);
+        const hrAlert = isHRHigh(entry.HeartRate);
+        const calAlert = isCalHigh(entry.Calories);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${entry.Date.slice(0,10)}</td>
+          <td class="${bpAlert?'table-danger':''}">${entry.BloodPressure||''}</td>
+          <td class="${sugarAlert?'table-danger':''}">${entry.BloodSugar||''}</td>
+          <td class="${oxyAlert?'table-danger':''}">${entry.BloodOxygen||''}</td>
+          <td class="${hrAlert?'table-danger':''}">${entry.HeartRate||''}</td>
+          <td class="${calAlert?'table-danger':''}">${entry.Calories||''}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" onclick="editEntry(${entry.TrackerID})">Update</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteEntry(${entry.TrackerID})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      drawChart();
+    }
+
+    async function loadTracker() {
+      const res = await fetch('/health/' + patientID);
+      allTrackerData = await res.json();
+      renderTracker();
+    }
+    loadTracker();
+
+    function editEntry(id) {
+      const entry = allTrackerData.find(e => e.TrackerID === id);
+      if (!entry) return;
+      document.getElementById('date').value = entry.Date.slice(0,10);
+      document.getElementById('bp').value = entry.BloodPressure || '';
+      document.getElementById('sugar').value = entry.BloodSugar || '';
+      document.getElementById('oxy').value = entry.BloodOxygen || '';
+      document.getElementById('hr').value = entry.HeartRate || '';
+      document.getElementById('cal').value = entry.Calories || '';
+      editingId = id;
+      document.querySelector('#healthForm button[type="submit"]').textContent = "Update Entry";
+    }
+
+    document.getElementById('healthForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const Date = document.getElementById('date').value;
+      const BloodPressure = document.getElementById('bp').value;
+      const BloodSugar = document.getElementById('sugar').value;
+      const BloodOxygen = document.getElementById('oxy').value;
+      const HeartRate = document.getElementById('hr').value;
+      const Calories = document.getElementById('cal').value;
+
+      let alerts = [];
+      if (isBPHigh(BloodPressure)) alerts.push("Blood Pressure out of range!");
+      if (isSugarHigh(BloodSugar)) alerts.push("Blood Sugar out of range!");
+      if (isOxyLow(BloodOxygen)) alerts.push("Blood Oxygen too low!");
+      if (isHRHigh(HeartRate)) alerts.push("Heart Rate out of range!");
+      if (isCalHigh(Calories)) alerts.push("Calories unusually high!");
+
+      if (alerts.length) {
+        alert(alerts.join('\n'));
+      }
+
+      if (editingId) {
+        // Update existing entry
+        const res = await fetch('/health/' + editingId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Date, BloodPressure, BloodSugar, BloodOxygen, HeartRate, Calories
+          })
+        });
+        if (res.ok) {
+          document.getElementById('trackerMsg').innerHTML = '<span class="text-success">Entry updated!</span>';
+          this.reset();
+          editingId = null;
+          document.querySelector('#healthForm button[type="submit"]').textContent = "Add Entry";
+          loadTracker();
+        } else {
+          document.getElementById('trackerMsg').innerHTML = '<span class="text-danger">Error updating entry.</span>';
+        }
+      } else {
+        // Add new entry
+        const res = await fetch('/health', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            PatientID: patientID, Date, BloodPressure, BloodSugar, BloodOxygen, HeartRate, Calories
+          })
+        });
+        if (res.ok) {
+          document.getElementById('trackerMsg').innerHTML = '<span class="text-success">Entry added!</span>';
+          this.reset();
+          loadTracker();
+        } else {
+          document.getElementById('trackerMsg').innerHTML = '<span class="text-danger">Error adding entry.</span>';
+        }
+      }
+      setTimeout(()=>document.getElementById('trackerMsg').innerHTML='', 1500);
+    });
+
+    async function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      await fetch('/health/' + id, { method: 'DELETE' });
+      loadTracker();
+    }
+
+    // --------- Chart.js Code ---------
+    function parseBP(bp) {
+      // Returns systolic (top) as number
+      if (!bp) return null;
+      const match = bp.match(/^(\d{2,3})/);
+      return match ? parseInt(match[1], 10) : null;
+    }
+
+    function drawChart() {
+      if (!allTrackerData.length) return;
+      const metric = document.getElementById('metricSelect').value;
+      let label = metric, data = [], labels = [];
+      let filtered = allTrackerData;
+      const now = new Date();
+      if (filter !== 'all') {
+        filtered = allTrackerData.filter(entry => {
+          const entryDate = new Date(entry.Date);
+          if (filter === 'week') return (now - entryDate) / (1000 * 3600 * 24) <= 7;
+          if (filter === 'month') return (now - entryDate) / (1000 * 3600 * 24) <= 31;
+          if (filter === 'year') return (now - entryDate) / (1000 * 3600 * 24) <= 366;
+          return true;
+        });
+      }
+      filtered.slice().reverse().forEach(entry => {
+        labels.push(entry.Date.slice(0,10));
+        if (metric === "BloodPressure") {
+          data.push(parseBP(entry.BloodPressure));
+          label = "Blood Pressure (Systolic)";
+        } else {
+          data.push(Number(entry[metric]) || null);
+          if (metric === "HeartRate") label = "Heart Rate";
+          if (metric === "BloodOxygen") label = "Blood Oxygen (%)";
+          if (metric === "Calories") label = "Calories";
+          if (metric === "BloodSugar") label = "Blood Sugar";
+        }
+      });
+      // Destroy previous chart instance if exists
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById('healthChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: label,
+            data: data,
+            fill: false,
+            borderColor: 'blue',
+            tension: 0.2,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: true }
+          },
+          scales: {
+            x: { title: { display: true, text: "Date" }},
+            y: { title: { display: true, text: label } }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

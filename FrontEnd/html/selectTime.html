@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Select Time</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<header class="site-navbar">
+        <div class="header-top">
+        <div class="header-top-container">
+            <div class="header-contact">
+            <span>(+65)</span>
+            <span>English</span>
+            </div>
+            <p class="header-motto">Better Health Begins Here.</p>
+            <a href="/login/login-signup.html" class="header-top-action">
+            Login<i class='bx bx-user'></i>
+            </a>
+        </div>
+        </div>
+        <div class="nav">
+        <div class="nav-logo">
+            <h2>Anywhere<span>Doctor</span></h2>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <ul class="nav-list">
+            <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+            <li class="nav-item"><a href="/bookingAppointment.html" class="nav-link">Appointments</a></li>
+            <li class="nav-item nav-dropdown">
+              <a href="#" class="nav-link">Tracker <i class='bx bx-chevron-down'></i></a>
+              <ul class="dropdown-menu">
+                <li><a href="../html/TrackersMain.html">Medical Tracker</a></li>
+                <li><a href="/html/AppointmentTrackers.html">Appointment Tracker</a></li>
+                <li><a href="/healthTracker.html">Health Tracker</a></li>
+              </ul>
+          </li>
+            </ul>
+            <div class="header-search" style="position: relative;">
+                <input type="text" placeholder="Search..." class="form-input" id="search-input">
+                <i class='bx bx-search-alt-2' id="search-icon"></i>
+                <!-- Suggestions container -->
+                <div class="search-suggestions" id="search-suggestions"></div>
+            </div>
+            <div class="header-user-actions">
+            <a href="wishlist.html" class="header-action-btn">
+                <i class='bx bxs-heart' style="color: red;"></i>
+                <span class="count"></span>
+            </a>
+            <a href="communityBoard.html" class="header-action-btn">
+                <i class='bx bx-message-square-dots' style="color: black;"></i>
+                <span class="count"></span>
+            </a>
+            </div>
+            <div class="header-menu">
+            <i class='bx bx-menu'></i>
+            </div>
+        </div>
+        </div>
+    </header>
+<body class="bg-light">
+  <script>
+    if (!localStorage.getItem('PatientID')) window.location.href = 'login.html';
+  </script>
+  <div class="container py-4">
+    <a href="bookingAppointment.html" class="btn btn-secondary mb-3">← Back to Calendar</a>
+    <h2>Select a Time for <span id="chosenDate"></span></h2>
+    <form id="timeForm" class="mt-4">
+      <div id="slots" class="row g-2"></div>
+      <button type="submit" class="btn btn-primary mt-3">Book Appointment</button>
+    </form>
+    <div id="confirmation" class="alert alert-success mt-4 d-none"></div>
+  </div>
+  <script>
+    (function() {
+      const params = new URLSearchParams(location.search);
+      const dateStr = params.get('date') || new Date().toISOString().slice(0,10);
+      const chosenDateEl = document.getElementById('chosenDate');
+      const dateObj = new Date(dateStr);
+      chosenDateEl.textContent = dateObj.toLocaleDateString('en-SG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      const slotsDiv = document.getElementById('slots');
+      for (let hour = 9; hour <= 17; hour++) {
+        const hh = hour.toString().padStart(2,'0') + ':00';
+        const col = document.createElement('div');
+        col.className = 'col-4';
+        col.innerHTML = `
+          <label class="btn btn-outline-secondary w-100">
+            <input type="radio" name="time" value="${hh}" required />
+            ${hh}
+          </label>
+        `;
+        slotsDiv.appendChild(col);
+      }
+
+      document.getElementById('timeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const chosenTime = document.querySelector('input[name=time]:checked').value;
+        const sgDate = new Date(`${dateStr}T${chosenTime}:00+08:00`);
+        const AppointmentDateTime = sgDate.toISOString(); // always UTC
+        let PatientID = localStorage.getItem('PatientID');
+        const res = await fetch('http://localhost:3000/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ PatientID, AppointmentDateTime })
+        });
+        if (res.ok) {
+          const appointment = await res.json();
+          console.log("APPT OGJ:", appointment);
+          window.location.href = `confirmation.html?id=${appointment.AppointmentID}`;
+        } else {
+          const error = await res.json();
+          const confirmationDiv = document.getElementById('confirmation');
+          confirmationDiv.classList.remove('d-none', 'alert-success');
+          confirmationDiv.classList.add('alert-danger');
+          confirmationDiv.textContent = 'Booking failed: ' + (error.error || res.status);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

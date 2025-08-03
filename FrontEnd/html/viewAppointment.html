@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>My Appointments</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<header class="site-navbar">
+        <div class="header-top">
+        <div class="header-top-container">
+            <div class="header-contact">
+            <span>(+65)</span>
+            <span>English</span>
+            </div>
+            <p class="header-motto">Better Health Begins Here.</p>
+            <a href="/login/login-signup.html" class="header-top-action">
+            Login<i class='bx bx-user'></i>
+            </a>
+        </div>
+        </div>
+        <div class="nav">
+        <div class="nav-logo">
+            <h2>Anywhere<span>Doctor</span></h2>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <ul class="nav-list">
+            <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+            <li class="nav-item"><a href="/bookingAppointment.html" class="nav-link">Appointments</a></li>
+            <li class="nav-item"><a href="/list.html" class="nav-link">Tracker</a></li>
+            </ul>
+            <div class="header-search" style="position: relative;">
+                <input type="text" placeholder="Search..." class="form-input" id="search-input">
+                <i class='bx bx-search-alt-2' id="search-icon"></i>
+                <!-- Suggestions container -->
+                <div class="search-suggestions" id="search-suggestions"></div>
+            </div>
+            <div class="header-user-actions">
+            <a href="wishlist.html" class="header-action-btn">
+                <i class='bx bxs-heart' style="color: red;"></i>
+                <span class="count"></span>
+            </a>
+            <a href="communityBoard.html" class="header-action-btn">
+                <i class='bx bx-message-square-dots' style="color: black;"></i>
+                <span class="count"></span>
+            </a>
+            </div>
+            <div class="header-menu">
+            <i class='bx bx-menu'></i>
+            </div>
+        </div>
+        </div>
+    </header>
+<body class="bg-light">
+  <script>
+    if (!localStorage.getItem('PatientID')) window.location.href = 'login.html';
+  </script>
+  <div class="container py-4">
+    <h2>My Appointments</h2>
+    <div class="mb-3">
+      <a href="bookingAppointment.html" class="btn btn-secondary">← Back to Calendar</a>
+    </div>
+    <table class="table table-striped" id="appointmentsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Date & Time</th>
+          <th>Doctor</th>
+          <th>Venue</th>
+          <th>Room</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div id="statusMsg"></div>
+  </div>
+<script>
+  if (!localStorage.getItem('PatientID')) window.location.href = 'login.html';
+
+  const patientId = localStorage.getItem('PatientID');
+
+  // Change this endpoint to match your backend!
+  fetch('/appointments')
+    .then(res => res.json())
+    .then(all => {
+      // Only show appointments for this patient
+      const myAppts = all.filter(a => a.PatientID == patientId);
+      const tbody = document.querySelector('#appointmentsTable tbody');
+      if (myAppts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center">No appointments found.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = '';
+      myAppts.forEach(appt => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${appt.AppointmentID}</td>
+          <td>${new Date(appt.AppointmentDateTime).toLocaleString('en-SG', { timeZone: 'Asia/Singapore' })}</td>
+          <td>${appt.DoctorName || appt.DoctorID}</td>
+          <td>${appt.Venue}</td>
+          <td>${appt.RoomNumber}</td>
+          <td>
+            <button class="btn btn-sm btn-warning me-2" onclick="updateAppointment(${appt.AppointmentID})">Update</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteAppointment(${appt.AppointmentID})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+
+  function updateAppointment(id) {
+    window.location.href = `updateAppointment.html?id=${id}`;
+  }
+
+  function deleteAppointment(id) {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return;
+    fetch(`/appointments/${id}`, { method: 'DELETE' })
+      .then(res => res.json())
+      .then(result => {
+        document.getElementById('statusMsg').innerHTML = `<div class="alert alert-success">Appointment cancelled.</div>`;
+        setTimeout(() => location.reload(), 1000);
+      });
+  }
+</script>
+
+</body>
+</html>
