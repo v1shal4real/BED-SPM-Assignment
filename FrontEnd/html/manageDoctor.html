@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/TrackersMain.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+    <title>Manage Doctors</title>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-top-container">
+                <div class="header-contact">
+                    <span>(+65)</span>
+                    <span>English</span>
+                </div>
+                <p class="header-motto">Better Health Begins Here.</p>
+                <div class="header-user-info" id="user-info" style="display: none;">
+                    <span id="user-name"></span>
+                    <button onclick="logout()" class="logout-btn">Logout</button>
+                </div>
+                <a href="/login/login-signup.html" class="header-top-action" id="login-link">
+                    Login<i class='bx bx-user'></i>
+                </a>
+            </div>
+        </div>
+        <div class="nav">
+            <div class="nav-logo">
+                <h2>Anywhere<span>Doctor</span></h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="../html/homepage.html" class="nav-link">Home</a></li>
+                    <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+                    <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
+                    <li class="nav-item nav-dropdown">
+                        <a href="#" class="nav-link">Tracker <i class='bx bx-chevron-down'></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="../html/TrackersMain.html">Medical Tracker</a></li>
+                            <li><a href="../html/CUDTracker.html">Create Medical Tracker</a></li>
+                            <li><a href="/html/AppointmentTrackers.html">Appointment Tracker</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item nav-dropdown">
+                        <a href="#" class="nav-link">Admin <i class='bx bx-chevron-down'></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="../html/CreateDoctor.html">Create Doctor</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="header-user-actions">
+                    <a href="wishlist.html" class="header-action-btn">
+                        <i class='bx bxs-heart' style="color: red;"></i>
+                        <span class="count"></span>
+                    </a>
+                    <a href="chats.html" class="header-action-btn">
+                        <i class='bx bx-message-square-dots' style="color: black;"></i>
+                        <span class="count"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div id="loading-screen" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <div id="unauthorized-screen" class="error-container" style="display: none;">
+            <div class="error-box">
+                <i class='bx bx-shield-x' style="font-size: 4rem; color: #dc3545; margin-bottom: 20px;"></i>
+                <h2 style="color: #dc3545; margin-bottom: 20px;">Access Denied</h2>
+                <p style="margin-bottom: 30px; color: #666;">Only administrators can manage doctors.</p>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button onclick="redirectToLogin()" class="btn-primary">Login as Admin</button>
+                    <button onclick="goHome()" class="btn-secondary">Go Home</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-content" style="display: none;">
+            <h1>Manage Doctors</h1>
+            
+            <div class="search-section">
+                <div class="search-box">
+                    <label for="doctor-search">Search Doctor ID:</label>
+                    <input type="number" id="doctor-search" placeholder="Enter Doctor ID" min="1">
+                    <button id="search-btn" onclick="searchDoctor()">
+                        <i class='bx bx-search'></i> Search
+                    </button>
+                    <button id="clear-btn" onclick="clearSearch()">
+                        <i class='bx bx-refresh'></i> Clear
+                    </button>
+                    <button id="view-all-btn" onclick="viewAllDoctors()">
+                        <i class='bx bx-list-ul'></i> View All
+                    </button>
+                </div>
+                <div id="search-info"></div>
+            </div>
+
+            <div id="admin-actions" style="margin-bottom: 20px; text-align: center;">
+                <a href="../html/CreateDoctor.html" class="btn-primary">
+                    <i class='bx bx-plus'></i> Create New Doctor
+                </a>
+            </div>
+
+            <div id="doctor-list"></div>
+        </div>
+    </main>
+
+<script>
+// User configuration with role-based permissions
+let USER_CONFIG = {
+    id: null,
+    role: null,
+    permissions: []
+};
+
+let editingId = null;
+let currentDoctorId = null;
+let allDoctors = [];
+
+// Authentication Configuration
+const AUTH_CONFIG = {
+    requiredRole: 'admin',
+    redirectUrl: '../html/login.html',
+    homeUrl: '../html/homepage.html'
+};
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await checkAuthAndAuthorization();
+    setupDropdowns();
+});
+
+// Authentication check function
+async function checkAuthAndAuthorization() {
+    console.log('=== ManageDoctors Auth Check ===');
+    
+    try {
+        const token = localStorage.getItem('token');
+        const userRole = localStorage.getItem('userRole');
+        const userId = localStorage.getItem('userId');
+        
+        console.log('Token:', !!token);
+        console.log('User Role:', userRole);
+        console.log('User ID:', userId);
+        
+        // Check if user is logged in
+        if (!token) {
+            console.log('❌ No token found');
+            showUnauthorized();
+            return;
+        }
+
+        // Check if user has admin role
+        if (userRole !== AUTH_CONFIG.requiredRole) {
+            console.log('❌ Role not allowed:', userRole);
+            showUnauthorized();
+            return;
+        }
+
+        console.log('✅ Auth successful - user is admin');
+        
+        // Set user configuration
+        USER_CONFIG.id = parseInt(userId);
+        USER_CONFIG.role = userRole;
+        USER_CONFIG.permissions = ['read', 'create', 'update', 'delete'];
+        
+        showMainContent();
+        await loadAllDoctors();
+
+    } catch (error) {
+        console.error('❌ Auth check failed:', error);
+        showUnauthorized();
+    }
+}
+
+function showMainContent() {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    document.getElementById('login-link').style.display = 'none';
+    document.getElementById('user-info').style.display = 'block';
+    document.getElementById('user-name').textContent = `Welcome, ADMIN`;
+    
+    updateSearchInfo();
+}
+
+function showUnauthorized() {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('unauthorized-screen').style.display = 'block';
+}
+
+// Load all doctors
+async function loadAllDoctors() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/admin/doctors', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load doctors');
+        }
+
+        allDoctors = await response.json();
+        updateSearchInfo();
+        displayDoctorsList(allDoctors);
+
+    } catch (error) {
+        console.error('Error loading doctors:', error);
+        document.getElementById('doctor-list').innerHTML = 
+            `<h3>Error loading doctors. Please try again later.</h3>`;
+    }
+}
+
+// Search specific doctor
+async function searchDoctor() {
+    const searchInput = document.getElementById('doctor-search');
+    const doctorId = parseInt(searchInput.value);
+    
+    if (!doctorId || doctorId <= 0) {
+        alert('Please enter a valid Doctor ID');
+        return;
+    }
+
+    try {
+        document.getElementById('search-info').innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Searching...';
+        
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:3000/api/admin/doctors/${doctorId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Doctor not found');
+        }
+        
+        const doctor = await response.json();
+        currentDoctorId = doctorId;
+        
+        document.getElementById('search-info').innerHTML = `
+            <div class="search-result">
+                <i class='bx bx-check-circle' style="color: green;"></i>
+                Found Doctor: ${doctor.name} (ID: ${doctor.id})
+            </div>
+        `;
+        
+        displayDoctorsList([doctor]);
+        
+    } catch (error) {
+        document.getElementById('search-info').innerHTML = `
+            <div class="search-error">
+                <i class='bx bx-error-circle' style="color: red;"></i>
+                ${error.message}
+            </div>
+        `;
+        searchInput.value = '';
+    }
+}
+
+function clearSearch() {
+    document.getElementById('doctor-search').value = '';
+    currentDoctorId = null;
+    updateSearchInfo();
+    displayDoctorsList(allDoctors);
+}
+
+function viewAllDoctors() {
+    document.getElementById('doctor-search').value = '';
+    currentDoctorId = null;
+    loadAllDoctors();
+}
+
+function updateSearchInfo() {
+    const infoDiv = document.getElementById('search-info');
+    if (currentDoctorId) {
+        infoDiv.innerHTML = `
+            <div class="search-default">
+                <i class='bx bx-info-circle' style="color: #1976d2;"></i>
+                Viewing Doctor ID: ${currentDoctorId}
+            </div>
+        `;
+    } else {
+        infoDiv.innerHTML = `
+            <div class="search-default">
+                <i class='bx bx-user-check' style="color: #1976d2;"></i>
+                <strong>Doctor Management System</strong>
+                <br><small>Total Doctors: ${allDoctors.length}</small>
+            </div>
+        `;
+    }
+}
+
+// Display doctors list
+function displayDoctorsList(doctors) {
+    const container = document.getElementById('doctor-list');
+    
+    if (doctors.length === 0) {
+        container.innerHTML = `<h3>No doctors found</h3>`;
+        return;
+    }
+    
+    container.innerHTML = `<h3>Doctors List (${doctors.length} ${doctors.length === 1 ? 'doctor' : 'doctors'})</h3><ul>` +
+        doctors.map(doctor => {
+            if (editingId === doctor.id) {
+                return `<li style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:15px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9;">
+                    <div style="display:flex;flex-direction:column;gap:10px;flex-grow:1;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                            <div>
+                                <label for="edit-name" style="font-weight:bold;display:block;margin-bottom:5px;">Full Name</label>
+                                <input type="text" id="edit-name" value="${doctor.name}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+                            </div>
+                            <div>
+                                <label for="edit-email" style="font-weight:bold;display:block;margin-bottom:5px;">Email</label>
+                                <input type="email" id="edit-email" value="${doctor.email}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                            <div>
+                                <label for="edit-role" style="font-weight:bold;display:block;margin-bottom:5px;">Role</label>
+                                <select id="edit-role" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+                                    <option value="doctor" ${doctor.role === 'doctor' ? 'selected' : ''}>Doctor</option>
+                                    <option value="admin" ${doctor.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="edit-password" style="font-weight:bold;display:block;margin-bottom:5px;">New Password (optional)</label>
+                                <input type="password" id="edit-password" placeholder="Leave blank to keep current password" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-left:20px;">
+                        <button class="confirm-btn" style="background:#388e3c;color:#fff;border:none;border-radius:5px;padding:8px 16px;cursor:pointer;font-size:14px;"
+                            onclick="confirmEdit(${doctor.id})">
+                            <i class='bx bx-check'></i> Confirm
+                        </button>
+                        <button class="cancel-btn" style="background:#6c757d;color:#fff;border:none;border-radius:5px;padding:8px 16px;cursor:pointer;font-size:14px;"
+                            onclick="cancelEdit()">
+                            <i class='bx bx-x'></i> Cancel
+                        </button>
+                    </div>
+                </li>`;
+            } else {
+                return `<li style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:15px;border:1px solid #ddd;border-radius:8px;background:#fff;">
+                    <div style="display:flex;align-items:center;gap:20px;flex-grow:1;">
+                        <div style="background:#1976d2;color:white;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;">
+                            ${doctor.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;flex-grow:1;">
+                            <div>
+                                <span style="font-weight:bold;color:#333;">ID:</span>
+                                <span style="margin-left:8px;">${doctor.id}</span>
+                            </div>
+                            <div>
+                                <span style="font-weight:bold;color:#333;">Name:</span>
+                                <span style="margin-left:8px;">${doctor.name}</span>
+                            </div>
+                            <div>
+                                <span style="font-weight:bold;color:#333;">Email:</span>
+                                <span style="margin-left:8px;">${doctor.email}</span>
+                            </div>
+                            <div>
+                                <span style="font-weight:bold;color:#333;">Role:</span>
+                                <span style="margin-left:8px;padding:2px 8px;background:${doctor.role === 'admin' ? '#dc3545' : '#28a745'};color:white;border-radius:12px;font-size:12px;">${doctor.role.toUpperCase()}</span>
+                            </div>
+                            <div>
+                                <span style="font-weight:bold;color:#333;">Created:</span>
+                                <span style="margin-left:8px;">${new Date(doctor.createdDate).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="edit-btn" style="background:#1976d2;color:#fff;border:none;border-radius:5px;padding:8px 16px;cursor:pointer;font-size:14px;"
+                            onclick="editDoctor(${doctor.id})">
+                            <i class='bx bx-edit'></i> Edit
+                        </button>
+                        <button class="delete-btn" style="background:#d32f2f;color:#fff;border:none;border-radius:5px;padding:8px 16px;cursor:pointer;font-size:14px;"
+                            onclick="deleteDoctor(${doctor.id}, '${doctor.name}')">
+                            <i class='bx bx-trash'></i> Delete
+                        </button>
+                    </div>
+                </li>`;
+            }
+        }).join('') +
+        `</ul>`;
+}
+
+// Edit doctor
+function editDoctor(doctorId) {
+    editingId = doctorId;
+    if (currentDoctorId) {
+        searchDoctor();
+    } else {
+        displayDoctorsList(allDoctors);
+    }
+}
+
+function cancelEdit() {
+    editingId = null;
+    if (currentDoctorId) {
+        searchDoctor();
+    } else {
+        displayDoctorsList(allDoctors);
+    }
+}
+
+// Confirm edit
+async function confirmEdit(doctorId) {
+    const name = document.getElementById('edit-name').value.trim();
+    const email = document.getElementById('edit-email').value.trim();
+    const role = document.getElementById('edit-role').value;
+    const password = document.getElementById('edit-password').value.trim();
+
+    if (!name || !email) {
+        alert('Name and email are required');
+        return;
+    }
+
+    const updateData = {
+        firstName: name.split(' ')[0],
+        lastName: name.split(' ').slice(1).join(' ') || '',
+        email: email,
+        role: role
+    };
+
+    if (password) {
+        updateData.password = password;
+    }
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:3000/api/admin/doctors/${doctorId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Update failed');
+        }
+
+        alert('Doctor updated successfully!');
+        editingId = null;
+        await loadAllDoctors();
+
+    } catch (error) {
+        console.error('Error updating doctor:', error);
+        alert('Error updating doctor: ' + error.message);
+    }
+}
+
+// Delete doctor
+async function deleteDoctor(doctorId, doctorName) {
+    if (doctorId === USER_CONFIG.id) {
+        alert('You cannot delete your own account!');
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to delete Dr. ${doctorName}?\nThis action cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:3000/api/admin/doctors/${doctorId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Delete failed');
+        }
+
+        alert('Doctor deleted successfully!');
+        await loadAllDoctors();
+
+    } catch (error) {
+        console.error('Error deleting doctor:', error);
+        alert('Error deleting doctor: ' + error.message);
+    }
+}
+
+// Utility functions
+function redirectToLogin() {
+    window.location.href = AUTH_CONFIG.redirectUrl;
+}
+
+function goHome() {
+    window.location.href = AUTH_CONFIG.homeUrl;
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('patientId');
+    localStorage.removeItem('userId');
+    window.location.href = AUTH_CONFIG.redirectUrl;
+}
+
+// Dropdown functionality
+function setupDropdowns() {
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        dropdown.addEventListener('mouseenter', function() {
+            if (menu) {
+                menu.style.opacity = '1';
+                menu.style.visibility = 'visible';
+                menu.style.transform = 'translateY(0)';
+            }
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            if (menu) {
+                menu.style.opacity = '0';
+                menu.style.visibility = 'hidden';
+                menu.style.transform = 'translateY(-10px)';
+            }
+        });
+    });
+}
+</script>
+</body>
+</html>

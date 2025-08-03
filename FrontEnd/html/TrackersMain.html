@@ -8,7 +8,7 @@
     <title>Home</title>
 </head>
 <body>
-    <header>
+        <header>
         <div class="header-top">
         <div class="header-top-container">
             <div class="header-contact">
@@ -16,9 +16,13 @@
             <span>English</span>
             </div>
             <p class="header-motto">Better Health Begins Here.</p>
-            <a href="/login/login-signup.html" class="header-top-action">
-            Login<i class='bx bx-user'></i>
-            </a>
+            <div class="header-user-info" id="user-info" style="display: none;">
+    <span id="user-name"></span>
+    <button onclick="logout()" class="logout-btn">Logout</button>
+</div>
+<a href="/login/login-signup.html" class="header-top-action" id="login-link">
+    Login<i class='bx bx-user'></i>
+</a>
         </div>
         </div>
         <div class="nav">
@@ -27,17 +31,19 @@
         </div>
         <div class="nav-menu" id="nav-menu">
             <ul class="nav-list">
-            <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="../html/homepage.html" class="nav-link">Home</a></li>
             <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
             <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
             <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
-            <li class="nav-item"><a href="../html/TrackersMain.html" class="nav-link">Tracker</a></li>
+            <li class="nav-item nav-dropdown">
+              <a href="#" class="nav-link">Tracker <i class='bx bx-chevron-down'></i></a>
+              <ul class="dropdown-menu">
+                <li><a href="../html/TrackersMain.html">Medical Tracker</a></li>
+                <li><a href="../html/CUDTracker.html">Create Medical Tracker</a></li>
+                <li><a href="/html/AppointmentTrackers.html">Appointment Tracker</a></li>
+              </ul>
+            </li>
             </ul>
-            <div class="header-search" style="position: relative;">
-                <input type="text" placeholder="Search..." class="form-input" id="search-input">
-                <i class='bx bx-search-alt-2' id="search-icon"></i>
-                <div class="search-suggestions" id="search-suggestions"></div>
-            </div>
             <div class="header-user-actions">
             <a href="wishlist.html" class="header-action-btn">
                 <i class='bx bxs-heart' style="color: red;"></i>
@@ -48,15 +54,26 @@
                 <span class="count"></span>
             </a>
             </div>
-            <div class="header-menu">
-            <i class='bx bx-menu'></i>
-            </div>
         </div>
         </div>
     </header>
 
  <main>
+  <div></div>
   <h1>Your Prescribed Medication</h1>
+  <div class="search-section">
+  <div class="search-box">
+    <label for="patient-search">Search Patient ID:</label>
+    <input type="number" id="patient-search" placeholder="Enter Patient ID" min="1">
+    <button id="search-btn" onclick="searchPatient()">
+      <i class='bx bx-search'></i> Search
+    </button>
+    <button id="clear-btn" onclick="clearSearch()">
+      <i class='bx bx-refresh'></i> Clear
+    </button>
+  </div>
+  <div id="search-info"></div>
+</div>
   <div class="days-grid">
     <div class="day-box" onclick="handleClick('Monday')">Monday</div>
     <div class="day-box" onclick="handleClick('Tuesday')">Tuesday</div>
@@ -67,38 +84,482 @@
     <div class="day-box" onclick="handleClick('Sunday')">Sunday</div>
   </div>
   <div id="medication-list"></div>
+
+  <!-- Add this after the h1 tag in the main content -->
+  <div id="admin-actions" style="margin-bottom: 20px; text-align: center;">
+    <a href="../html/CUDTracker.html" id="create-link" class="btn-primary" style="display: none;">
+      <i class='bx bx-plus'></i> Create New Medication
+    </a>
+  </div>
 </main>
 
 <script>
-  // Replace with actual PatientID (from login/session)
-  const PATIENT_ID = 1;
+// User configuration with role-based permissions
+let USER_CONFIG = {
+  id: null,
+  patientId: null,
+  role: null,
+  permissions: [],
+  canViewAllPatients: false
+};
 
-  async function handleClick(day) {
-    // Fetch medication for this patient
-    try {
-      const response = await fetch(`http://localhost:3000/Tracker/${PATIENT_ID}`);
-      if (!response.ok) throw new Error('Failed to fetch');
-      const meds = await response.json();
-      // Filter by day
-      const filtered = meds.filter(med => med.DayOfWeek === day);
-      displayMedication(filtered, day);
-    } catch (err) {
-      alert('Error fetching medication: ' + err.message);
-    }
+let editingId = null;
+let currentDay = '';
+let currentPatientId = null;
+
+// Check authentication and set permissions on page load
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('=== PAGE LOAD START ===');
+  
+  const token = localStorage.getItem('token');
+  const patientId = localStorage.getItem('patientId');
+  const userRole = localStorage.getItem('userRole');
+  const userId = localStorage.getItem('userId');
+  
+  console.log('Raw values from localStorage:');
+  console.log('- token exists:', !!token);
+  console.log('- patientId:', patientId);
+  console.log('- userRole:', userRole);
+  console.log('- userId:', userId);
+  
+  if (!token || !userId) {
+    console.error('Missing essential login data');
+    showUnauthorized();
+    return;
   }
-
-  function displayMedication(meds, day) {
-    const container = document.getElementById('medication-list');
-    if (meds.length === 0) {
-      container.innerHTML = `<h3>No medication for ${day}</h3>`;
+  
+  // For patients, use userId as patientId if patientId is not set
+  let actualPatientId;
+  if (userRole === 'patient') {
+    // For patients, use their userId as patientId
+    actualPatientId = parseInt(userId);
+    console.log('Patient role detected, using userId as patientId:', actualPatientId);
+  } else {
+    // For admin/doctor, use patientId from localStorage
+    actualPatientId = parseInt(patientId);
+    console.log('Admin/Doctor role, using patientId:', actualPatientId);
+  }
+  
+  // Validate the final patientId
+  if (isNaN(actualPatientId) || actualPatientId <= 0) {
+    console.error('Invalid patientId after processing:', actualPatientId);
+    alert('Invalid patient data. Please log in again.');
+    localStorage.clear();
+    window.location.href = '../html/login.html';
+    return;
+  }
+  
+  // Set user configuration based on role
+  USER_CONFIG.id = parseInt(userId);
+  USER_CONFIG.patientId = actualPatientId;
+  USER_CONFIG.role = userRole;
+  
+  // Set permissions and current patient based on role
+  switch(userRole) {
+    case 'admin':
+      USER_CONFIG.permissions = ['read', 'create', 'update', 'delete'];
+      USER_CONFIG.canViewAllPatients = true;
+      currentPatientId = actualPatientId;
+      break;
+    case 'doctor':
+      USER_CONFIG.permissions = ['read', 'create', 'update', 'delete'];
+      USER_CONFIG.canViewAllPatients = true;
+      currentPatientId = actualPatientId;
+      break;
+    case 'patient':
+      USER_CONFIG.permissions = ['read'];
+      USER_CONFIG.canViewAllPatients = false;
+      currentPatientId = actualPatientId; 
+      break;
+    default:
+      console.error('Invalid user role:', userRole);
+      showUnauthorized();
       return;
-    }
-    container.innerHTML = `<h3>Medication for ${day}</h3><ul>` +
-      meds.map(med => `<li>
-        MedicationID: ${med.MedicationID}, Time: ${med.TimeOfDay}, Quantity: ${med.Quantity}
-      </li>`).join('') +
-      `</ul>`;
   }
+  
+  console.log('Final currentPatientId:', currentPatientId);
+  console.log('USER_CONFIG:', USER_CONFIG);
+  
+  showMainContent();
+  
+  // Auto-load patient's medications if patient role
+  if (userRole === 'patient') {
+    await loadPatientMedications();
+  }
+});
+
+// auto-load patient medications
+async function loadPatientMedications() {
+  try {
+    const response = await fetch(`http://localhost:3000/Tracker/${currentPatientId}`);
+    if (response.ok) {
+      const medications = await response.json();
+      updateSearchInfo();
+      document.getElementById('medication-list').innerHTML = 
+        `<h3>Your Medications - Click a day to view (${medications.length} total)</h3>`;
+    } else {
+      document.getElementById('medication-list').innerHTML = 
+        `<h3>No medications found for your account</h3>`;
+    }
+  } catch (error) {
+    console.error('Error loading patient medications:', error);
+    document.getElementById('medication-list').innerHTML = 
+      `<h3>Error loading your medications. Please try again later.</h3>`;
+  }
+}
+
+function showMainContent() {
+  document.getElementById('login-link').style.display = 'none';
+  document.getElementById('user-info').style.display = 'block';
+  document.getElementById('user-name').textContent = `${USER_CONFIG.role.toUpperCase()}: ${USER_CONFIG.role === 'patient' ? 'Patient ID ' + USER_CONFIG.patientId : 'User ID ' + USER_CONFIG.id}`;
+  
+  // Show create button for admins and doctors
+  if (hasPermission('create')) {
+    const createLink = document.getElementById('create-link');
+    if (createLink) createLink.style.display = 'inline-flex';
+  }
+  
+  updateSearchInfo();
+  updatePermissionDisplay();
+}
+
+function showUnauthorized() {
+  alert('Please log in to access this page');
+  window.location.href = '../html/login.html';
+}
+
+// Update permission display
+function updatePermissionDisplay() {
+  const permissionText = USER_CONFIG.permissions.join(', ');
+  const roleText = USER_CONFIG.role.charAt(0).toUpperCase() + USER_CONFIG.role.slice(1);
+  
+  // Update search section based on role
+  const searchSection = document.querySelector('.search-section');
+  if (USER_CONFIG.role === 'patient') {
+    searchSection.style.display = 'none'; 
+  } else {
+    searchSection.style.display = 'block';
+  }
+  
+  // Add permission info display
+  if (!document.getElementById('permission-info')) {
+    const permissionDiv = document.createElement('div');
+    permissionDiv.id = 'permission-info';
+    permissionDiv.style.cssText = 'color: #666; font-size: 14px; margin-top: 10px; text-align: center;';
+    document.querySelector('.search-section') ? 
+      document.querySelector('.search-section').appendChild(permissionDiv) :
+      document.querySelector('main').insertBefore(permissionDiv, document.querySelector('.days-grid'));
+  }
+  
+  document.getElementById('permission-info').textContent = 
+    `Role: ${roleText} | Permissions: ${permissionText}`;
+}
+
+// Authorization helper functions
+function hasPermission(permission) {
+  return USER_CONFIG.permissions.includes(permission);
+}
+
+function canAccessPatient(patientId) {
+  if (USER_CONFIG.role === 'admin' || USER_CONFIG.role === 'doctor') {
+    return true;
+  }
+  return patientId === USER_CONFIG.patientId;
+}
+
+// Updated search functionality with role-based access
+async function searchPatient() {
+  if (!USER_CONFIG.canViewAllPatients) {
+    alert('You can only view your own medication data.');
+    return;
+  }
+
+  const searchInput = document.getElementById('patient-search');
+  const patientId = parseInt(searchInput.value);
+  
+  if (!patientId || patientId <= 0) {
+    alert('Please enter a valid Patient ID');
+    return;
+  }
+
+  try {
+    document.getElementById('search-info').innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Searching...';
+    
+    const response = await fetch(`http://localhost:3000/Tracker/${patientId}`);
+    if (!response.ok) {
+      throw new Error('Patient not found or no medications available');
+    }
+    
+    const medications = await response.json();
+    currentPatientId = patientId;
+    
+    document.getElementById('search-info').innerHTML = `
+      <div class="search-result">
+        <i class='bx bx-check-circle' style="color: green;"></i>
+        Found Patient ID: ${patientId} (${medications.length} medications)
+      </div>
+    `;
+    
+    document.getElementById('medication-list').innerHTML = 
+      `<h3>Patient ID ${patientId} - Click a day to view medications</h3>`;
+    
+  } catch (error) {
+    document.getElementById('search-info').innerHTML = `
+      <div class="search-error">
+        <i class='bx bx-error-circle' style="color: red;"></i>
+        ${error.message}
+      </div>
+    `;
+    searchInput.value = '';
+  }
+}
+
+function clearSearch() {
+  if (!USER_CONFIG.canViewAllPatients) return;
+  
+  document.getElementById('patient-search').value = '';
+  currentPatientId = USER_CONFIG.patientId;
+  updateSearchInfo();
+  document.getElementById('medication-list').innerHTML = '';
+}
+
+function updateSearchInfo() {
+  const infoDiv = document.getElementById('search-info');
+  if (USER_CONFIG.role === 'patient') {
+    infoDiv.innerHTML = `
+      <div class="search-default">
+        <i class='bx bx-user' style="color: #1976d2;"></i>
+        <strong>Your Medication Tracker (Patient ID: ${currentPatientId})</strong>
+        <br><small>Select a day below to view your scheduled medications</small>
+      </div>
+    `;
+  } else {
+    const isDefault = currentPatientId === USER_CONFIG.patientId;
+    infoDiv.innerHTML = `
+      <div class="search-default">
+        <i class='bx bx-info-circle' style="color: #1976d2;"></i>
+        ${isDefault ? 'Default view' : 'Searching'} - Patient ID: ${currentPatientId}
+      </div>
+    `;
+  }
+}
+
+// Updated handleClick function with better error handling:
+async function handleClick(day) {
+  if (!hasPermission('read')) {
+    alert('You do not have permission to view medications');
+    return;
+  }
+
+  console.log('Fetching medications for:', {
+    patientId: currentPatientId,
+    day: day,
+    userRole: USER_CONFIG.role
+  });
+
+  currentDay = day; 
+  try {
+    const response = await fetch(`http://localhost:3000/Tracker/${currentPatientId}`);
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        displayMedication([], day);
+        return;
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const meds = await response.json();
+    console.log('All medications:', meds);
+    
+    const filtered = meds.filter(med => med.DayOfWeek === day);
+    console.log('Filtered medications for', day, ':', filtered);
+    
+    displayMedication(filtered, day);
+  } catch (err) {
+    console.error('Error fetching medication:', err);
+    alert('Error fetching medication: ' + err.message);
+    document.getElementById('medication-list').innerHTML = 
+      `<h3>Error loading medications for ${day}</h3><p>${err.message}</p>`;
+  }
+}
+
+// Updated displayMedication with role-based buttons
+function displayMedication(meds, day) {
+  const container = document.getElementById('medication-list');
+  if (meds.length === 0) {
+    container.innerHTML = `<h3>No medication for ${day}</h3>`;
+    return;
+  }
+  
+  container.innerHTML = `<h3>Medication for ${day}</h3><ul>` +
+    meds.map(med => {
+      if (editingId === med.MedicationID && hasPermission('update')) {
+        return `<li style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span>
+            ${med.ImageURL ? `<img src="${med.ImageURL}" style="width:32px;height:32px;vertical-align:middle;margin-right:8px;">` : ''}
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label for="edit-id" style="font-weight:bold;">Medication ID</label>
+              <input type="number" id="edit-id" value="${med.MedicationID}" style="width:100px;">
+              <label style="font-weight:bold;">Medication Name</label>
+              <div id="edit-name-display" style="margin-bottom:6px;">${med.MedicationName || ''}</div>
+              <label for="edit-quantity" style="font-weight:bold;">Quantity</label>
+              <input type="number" id="edit-quantity" value="${med.Quantity}" style="width:60px;">
+              <label for="edit-time" style="font-weight:bold;">Time of Day</label>
+              <input type="text" id="edit-time" value="${med.TimeOfDay}" style="width:100px;">
+              <label for="edit-day" style="font-weight:bold;">Day of Week</label>
+              <input type="text" id="edit-day" value="${med.DayOfWeek}" style="width:100px;">
+            </div>
+          </span>
+          <span>
+            <button class="confirm-btn" style="background:#388e3c;color:#fff;border:none;border-radius:5px;padding:5px 12px;margin-right:8px;cursor:pointer;"
+              onclick="confirmEdit(${med.PatientID},${med.MedicationID})">Confirm</button>
+            <button class="cancel-btn" style="background:#aaa;color:#fff;border:none;border-radius:5px;padding:5px 12px;cursor:pointer;"
+              onclick="cancelEdit()">Cancel</button>
+          </span>
+        </li>`;
+      } else {
+        return `<li style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <span class="medication-content" style="display:flex;align-items:center;gap:24px;">
+            ${med.ImageURL ? `<img src="${med.ImageURL}" style="width:48px;height:48px;vertical-align:middle;margin-right:12px;">` : ''}
+            <span style="font-size:1.2em;display:flex;gap:50px;">
+              <span><span class="bold-title">MedicationID:</span> ${med.MedicationID}</span>
+              <span><span class="bold-title">Medication Name:</span> ${med.MedicationName}</span>
+              <span><span class="bold-title">Time:</span> ${med.TimeOfDay}</span>
+              <span><span class="bold-title">Quantity:</span> ${med.Quantity}</span>
+            </span>
+          </span>
+          <span>
+            ${hasPermission('update') && canAccessPatient(med.PatientID) ? `<button class="edit-btn" style="background:#1976d2;color:#fff;border:none;border-radius:5px;padding:5px 12px;margin-right:8px;cursor:pointer;font-size:1em;"
+              onclick="editMedication(${med.PatientID},${med.MedicationID})">Edit</button>` : ''}
+            ${hasPermission('delete') && canAccessPatient(med.PatientID) ? `<button class="delete-btn" style="background:#d32f2f;color:#fff;border:none;border-radius:5px;padding:5px 12px;cursor:pointer;font-size:1em;"
+              onclick="deleteMedication(${med.PatientID},${med.MedicationID})">Delete</button>` : ''}
+          </span>
+        </li>`;
+      }
+    }).join('') +
+    `</ul>`;
+}
+
+// Updated delete function with authorization
+async function deleteMedication(patientId, medicationId) {
+  if (!hasPermission('delete')) {
+    alert('You do not have permission to delete medications');
+    return;
+  }
+
+  if (!canAccessPatient(patientId)) {
+    alert('You do not have permission to modify this patient\'s data');
+    return;
+  }
+
+  if (!confirm("Are you sure you want to delete this medication?")) return;
+  
+  try {
+    const res = await fetch(`http://localhost:3000/Tracker/${patientId}/${medicationId}`, {
+      method: "DELETE"
+    });
+    if (!res.ok) throw new Error("Delete failed");
+    alert("Medication deleted!");
+    handleClick(currentDay);
+  } catch (err) {
+    alert("Error deleting medication: " + err.message);
+  }
+}
+
+// Updated edit function with authorization
+function editMedication(patientId, medicationId) {
+  if (!hasPermission('update')) {
+    alert('You do not have permission to edit medications');
+    return;
+  }
+
+  if (!canAccessPatient(patientId)) {
+    alert('You do not have permission to modify this patient\'s data');
+    return;
+  }
+
+  editingId = medicationId;
+  handleClick(currentDay);
+}
+
+function cancelEdit() {
+  editingId = null;
+  handleClick(currentDay);
+}
+
+// Updated confirm edit with authorization
+async function confirmEdit(patientId, medicationId) {
+  if (!hasPermission('update')) {
+    alert('You do not have permission to update medications');
+    return;
+  }
+
+  if (!canAccessPatient(patientId)) {
+    alert('You do not have permission to modify this patient\'s data');
+    return;
+  }
+
+  const newId = document.getElementById('edit-id').value;
+  const quantity = document.getElementById('edit-quantity').value;
+  const time = document.getElementById('edit-time').value;
+  const day = document.getElementById('edit-day').value;
+
+  const data = {
+    MedicationID: newId,
+    Quantity: quantity,
+    TimeOfDay: time,
+    DayOfWeek: day
+  };
+
+  try {
+    const res = await fetch(`http://localhost:3000/Tracker/${patientId}/${medicationId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("Update failed");
+    alert("Medication updated!");
+    editingId = null;
+    handleClick(currentDay);
+  } catch (err) {
+    alert("Error updating medication: " + err.message);
+  }
+}
+
+// Keep existing medication name lookup functionality
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'edit-id') {
+    const medId = e.target.value;
+    if (medId) {
+      fetch(`http://localhost:3000/Tracker/medication-name/${medId}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('edit-name-display').textContent = data.MedicationName || '';
+        })
+        .catch(() => {
+          document.getElementById('edit-name-display').textContent = '';
+        });
+    } else {
+      document.getElementById('edit-name-display').textContent = '';
+    }
+  }
+});
+
+// Initialize page
+window.addEventListener('DOMContentLoaded', function() {
+  updateSearchInfo();
+});
+
+// Utility functions
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('patientId');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userId');
+  window.location.href = '../html/login.html';
+}
 </script>
 </body>
 </html>
