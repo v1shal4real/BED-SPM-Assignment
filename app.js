@@ -5,11 +5,13 @@ const dotenv = require("dotenv");
 // Load environment variables
 dotenv.config();
 
-const cyController = require("./controller/CyController");
+const loginController = require('../BED-SPM-Assignment/LoginNSignUp/controller/loginController');
+
+const cyController = require("./MedicalRecord/controller/CyController");
 const {
   validate,
   handleValidationError
-} = require("./middleware/CyValidation");
+} = require("./MedicalRecord/middleware/CyValidation");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +19,7 @@ const PORT = process.env.PORT || 3000;
 // middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "FrontEnd")));
 
 // API Routes
 app.get('/patients', cyController.getAllPatients);
@@ -37,12 +39,19 @@ app.delete('/medical-details/:id', cyController.deleteMedicalDetail);
 // Doctor routes
 app.get('/doctors', cyController.getAllDoctors);
 
+// login
+app.post('/api/login', loginController.login);
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'html', 'login.html'));
+});
+
 // Error handling
 app.use(handleValidationError);
 
 // Start server
 app.listen(PORT, () => {
     console.log(`Medical Records server running on port ${PORT}`);
+    console.log(`Click http://localhost:${PORT}`);
 });
 
 // Graceful shutdown

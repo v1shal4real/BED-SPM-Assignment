@@ -9,19 +9,29 @@ const apiBaseUrl = "http://localhost:3000";
 let currentMedicalDetails = [];
 let editingDetailId = null;
 
-// Initialize the application
+// Get user role and id from localStorage
+const userRole = localStorage.getItem('role');
+const userId = localStorage.getItem('id');
+
+// Initialize app
 document.addEventListener('DOMContentLoaded', function() {
-    loadAllPatients();
-    loadAllDoctors();
-    setupEventListeners();
+    if (userRole === 'patient') {
+        // Hide search section for patients
+        document.querySelector('.search-section').style.display = 'none';
+        // Show only their own data
+        viewPatientDetail(parseInt(userId));
+    } else {
+        // For doctor login: show all patients and search
+        loadAllPatients();
+        loadAllDoctors();
+        setupEventListeners();
+    }
 });
 
 // Event listeners
 function setupEventListeners() {
-    // Record form submission
     document.getElementById('appointmentForm').addEventListener('submit', handleRecordFormSubmit); // feature 1
     document.getElementById('medicalDetailForm').addEventListener('submit', handleMedicalDetailFormSubmit); // feature 2
-    // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
@@ -165,8 +175,14 @@ async function viewPatientDetail(patientId) {
 // Display patient detail view
 function displayPatientDetail() {
     const container = document.getElementById('patientDetailContainer');
-    
+    const canEdit = userRole === 'doctor';
+
+    const backButtonHTML = canEdit
+        ? `<button onclick="showAllPatients()" class="back-btn">Back to All Patients</button>`
+        : '';
+
     const patientDetailHTML = `
+        ${backButtonHTML}
         <div class="patient-detail">
             <h2>Patient Information</h2>
             <div class="patient-info">
@@ -211,10 +227,12 @@ function displayPatientDetail() {
                             <div class="appointment-details">
                                 <strong>Venue:</strong> ${record.Venue} | <strong>Room:</strong> ${record.RoomNumber}
                             </div>
+                            ${canEdit ? `
                             <div class="appointment-actions">
                                 <button onclick="editRecord(${record.RecordID})" class="btn btn-edit">Edit</button>
                                 <button onclick="deleteRecord(${record.RecordID})" class="btn btn-delete">Delete</button>
                             </div>
+                            ` : ''}
                         </div>
                     `).join('')
                 }
@@ -224,7 +242,7 @@ function displayPatientDetail() {
         <div class="medical-details-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2>Medical Record Details</h2>
-                <button onclick="openCreateMedicalDetailModal()" class="btn btn-primary">Add Medical Detail</button>
+                ${canEdit ? `<button onclick="openCreateMedicalDetailModal()" class="btn btn-primary">Add Medical Detail</button>` : ''}
             </div>
             <div id="medicalDetailsContainer">
                 <p>No medical details found for this patient.</p>
@@ -239,12 +257,11 @@ function displayPatientDetail() {
 
 function displayMedicalDetails() {
     const container = document.getElementById('medicalDetailsContainer');
-    
     if (currentMedicalDetails.length === 0) {
         container.innerHTML = '<p>No medical details found for this patient.</p>';
         return;
     }
-
+    const canEdit = userRole === 'doctor';
     container.innerHTML = currentMedicalDetails.map(detail => `
         <div class="medical-detail-card" onclick="viewMedicalDetail(${detail.DetailID})">
             <div class="medical-detail-summary">
@@ -252,10 +269,12 @@ function displayMedicalDetails() {
                     <div class="detail-diagnosis">${detail.Diagnosis}</div>
                     <div class="detail-date">${formatDateTime(detail.RecordDateTime)}</div>
                 </div>
+                ${canEdit ? `
                 <div class="detail-actions" onclick="event.stopPropagation()">
                     <button onclick="editMedicalDetail(${detail.DetailID})" class="btn btn-edit">Edit</button>
                     <button onclick="deleteMedicalDetail(${detail.DetailID})" class="btn btn-delete">Delete</button>
                 </div>
+                ` : ''}
             </div>
         </div>
     `).join('');
@@ -324,6 +343,7 @@ function viewMedicalDetail(detailId) {
 
 // Open create medical detail modal
 function openCreateMedicalDetailModal() {
+    if (userRole !== 'doctor') return;
     editingDetailId = null;
     document.getElementById('medicalDetailModalTitle').textContent = 'Add Medical Detail';
     document.getElementById('saveMedicalDetailBtn').textContent = 'Save';
@@ -345,6 +365,7 @@ function openCreateMedicalDetailModal() {
 
 // Edit medical detail
 function editMedicalDetail(detailId) {
+    if (userRole !== 'doctor') return;
     editingDetailId = detailId;
     const detail = currentMedicalDetails.find(d => d.DetailID === detailId);
     if (!detail) return;
@@ -378,6 +399,7 @@ function editMedicalDetail(detailId) {
 
 // Handle medical detail form submission
 async function handleMedicalDetailFormSubmit(event) {
+    if (userRole !== 'doctor') return;
     event.preventDefault();
 
     const formData = {
@@ -428,6 +450,7 @@ async function handleMedicalDetailFormSubmit(event) {
 
 // Delete medical detail
 async function deleteMedicalDetail(detailId) {
+    if (userRole !== 'doctor') return;
     if (!confirm('Are you sure you want to delete this medical detail? This action cannot be undone.')) {
         return;
     }
@@ -462,6 +485,7 @@ function closeMedicalDetailViewModal() {
 
 // Edit record
 function editRecord(recordId) {
+    if (userRole !== 'doctor') return;
     editingRecordId = recordId;
     
     // Find record data
@@ -482,6 +506,7 @@ function editRecord(recordId) {
 
 // Handle record form submission
 async function handleRecordFormSubmit(event) {
+    if (userRole !== 'doctor') return;
     event.preventDefault();
     
     const formData = {
@@ -518,6 +543,7 @@ async function handleRecordFormSubmit(event) {
 
 // Delete record
 async function deleteRecord(recordId) {
+    if (userRole !== 'doctor') return;
     if (!confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
         return;
     }
