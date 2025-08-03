@@ -151,11 +151,15 @@ function handleEditSubmit(id) {
 function handleDelete(id) {
   document.getElementById("deleteMedBtn").addEventListener("click", async () => {
     if (!confirm("Delete this medication?")) return;
+    
     try {
+      // Simple delete request, similar to how edit works
       const res = await fetch(`/medications/${id}`, {
         method: "DELETE"
       });
+      
       if (!res.ok) throw new Error(await res.text());
+      
       showNotification("Medication deleted successfully!", "success", 1200);
       setTimeout(() => {
         location.href = "/store.html";

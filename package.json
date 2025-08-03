@@ -1,8 +1,9 @@
 {
   "name": "medicationstore",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "../app.js",
   "scripts": {
+    "start": "node ../app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,5 +16,8 @@
     "express": "^5.1.0",
     "mssql": "^11.0.1",
     "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "@ljharb/tsconfig": "^0.3.2"
   }
 }

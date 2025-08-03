@@ -110,15 +110,39 @@ async function updateMedication(id, { name, description, price, imageUrl }) {
 
 async function deleteMedication(id) {
   const pool = await sql.connect(dbConfig);
-  const del = await pool.request()
-    .input("id", sql.Int, id)
-    .query(`
-      DELETE FROM dbo.Medications
-      WHERE MedicationID = @id;
-      SELECT @@ROWCOUNT AS rowsAffected;
-    `);
-  pool.close();
-  return del.recordset[0].rowsAffected > 0;
+  
+  // Start a transaction to ensure data consistency
+  const transaction = new sql.Transaction(pool);
+  
+  try {
+    await transaction.begin();
+    
+    // First, delete related tracker records
+    await transaction.request()
+      .input("id", sql.Int, id)
+      .query(`
+        DELETE FROM dbo.Trackers
+        WHERE MedicationID = @id
+      `);
+    
+    // Then delete the medication
+    const del = await transaction.request()
+      .input("id", sql.Int, id)
+      .query(`
+        DELETE FROM dbo.Medications
+        WHERE MedicationID = @id;
+        SELECT @@ROWCOUNT AS rowsAffected;
+      `);
+    
+    await transaction.commit();
+    pool.close();
+    return del.recordset[0].rowsAffected > 0;
+    
+  } catch (error) {
+    await transaction.rollback();
+    pool.close();
+    throw error;
+  }
 }
 
 module.exports = {

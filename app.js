@@ -14,15 +14,18 @@ const {
   fetchOneMed,
   createMed,
   updateMed,
-  deleteMed
-} = require("./controller/KhairiController");
+  deleteMed,
+  forceDeleteMed,
+  hardDeleteMed,
+  getMedReferences
+} = require("./MedicationStore/controller/KhairiController.js");  // Medication Store Controller    
 
 const {
   addOrUpdateCart,
   getCart,
   updateCart,
   removeFromCart
-} = require("./controller/cartController");
+} = require("./MedicationStore/controller/cartController.js");  
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -45,9 +48,9 @@ app.put    ("/api/cart/update",  updateCart);           // Manually update quant
 app.delete ("/api/cart/delete",  removeFromCart);       // Remove an item from the cart
 
 // ─── Static Files ──────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, "../FrontEnd/html")));
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/css", express.static(path.join(__dirname, "../FrontEnd/css")));
+app.use(express.static(path.join(__dirname, "FrontEnd/html")));
+app.use(express.static(path.join(__dirname, "MedicationStore/public")));
+app.use("/css", express.static(path.join(__dirname, "FrontEnd/css")));
 
 // ─── Server Startup & Shutdown ────────────────────────────────
 app.listen(port, () =>
