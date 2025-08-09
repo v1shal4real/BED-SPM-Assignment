@@ -115,6 +115,7 @@ function validateDocID(req, res, next) {
     return res
       .status(400)
       .json({ error: "Invalid ID. ID must be a positive number" });
+
   }
   next();
 }
@@ -127,3 +128,4 @@ module.exports = {
   validateDoc,
   validateDocID,
 };
+
