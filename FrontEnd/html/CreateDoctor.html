@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/CreateDoctor.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+    <title>Create Doctor Credentials - AnywhereDoctor</title>
+    <style>
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-top-container">
+                <div class="header-contact">
+                    <span>(+65)</span>
+                    <span>English</span>
+                </div>
+                <p class="header-motto">Better Health Begins Here.</p>
+                <div class="header-user-info" id="user-info" style="display: none;">
+                    <span id="user-name"></span>
+                    <button onclick="logout()" class="logout-btn">Logout</button>
+                </div>
+                <a href="/login/login-signup.html" class="header-top-action" id="login-link">
+                    Login<i class='bx bx-user'></i>
+                </a>
+            </div>
+        </div>
+        <div class="nav">
+            <div class="nav-logo">
+                <h2>Anywhere<span>Doctor</span></h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="../html/homepage.html" class="nav-link">Home</a></li>
+                    <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+                    <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
+                    <li class="nav-item nav-dropdown">
+                        <a href="#" class="nav-link">Tracker <i class='bx bx-chevron-down'></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="../html/TrackersMain.html">Medical Tracker</a></li>
+                            <li><a href="../html/CUDTracker.html">Create Medical Tracker</a></li>
+                            <li><a href="/html/AppointmentTrackers.html">Appointment Tracker</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item nav-dropdown">
+                        <a href="#" class="nav-link">Admin <i class='bx bx-chevron-down'></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="../html/CreateDoctor.html">Create Doctor</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="header-user-actions">
+                    <a href="wishlist.html" class="header-action-btn">
+                        <i class='bx bxs-heart' style="color: red;"></i>
+                        <span class="count"></span>
+                    </a>
+                    <a href="chats.html" class="header-action-btn">
+                        <i class='bx bx-message-square-dots' style="color: black;"></i>
+                        <span class="count"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+    <div class="auth-container">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Verifying access...</p>
+        </div>
+
+        <!-- Unauthorized Access Screen -->
+        <div id="unauthorized-screen" class="error-container" style="display: none;">
+            <div class="error-box">
+                <i class='bx bx-shield-x' style="font-size: 4rem; color: #dc3545;"></i>
+                <h2>Access Denied</h2>
+                <p>You don't have permission to access this page.</p>
+                <p>Only administrators can create doctor credentials.</p>
+                <button onclick="redirectToLogin()" class="btn-primary">Login as Admin</button>
+                <button onclick="goHome()" class="btn-secondary">Go to Home</button>
+            </div>
+        </div>
+
+        <!-- Main Content (Only shown to authorized users) -->
+        <div id="main-content" class="container" style="display: none;">
+            <div class="page-header">
+                <h1>Create Doctor Credentials</h1>
+                <p>Create login credentials for new doctors in the system</p>
+            </div>
+
+            <div class="form-container">
+                <form id="doctor-form" class="doctor-form">
+                    <div class="form-group">
+                        <label for="doctor-name">
+                            <i class='bx bx-user'></i>
+                            Doctor Full Name
+                        </label>
+                        <input type="text" id="doctor-name" name="doctorName" required 
+                               placeholder="Enter doctor's full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            <i class='bx bx-envelope'></i>
+                            Email Address
+                        </label>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="doctor@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="temp-password">
+                            <i class='bx bx-lock'></i>
+                            Temporary Password
+                        </label>
+                        <div class="password-input">
+                            <input type="password" id="temp-password" name="tempPassword" required 
+                                   placeholder="Enter temporary password">
+                            <button type="button" onclick="togglePassword()" class="password-toggle">
+                                <i class='bx bx-show' id="password-icon"></i>
+                            </button>
+                        </div>
+                        <small class="form-help">Doctor will be required to change this on first login</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" onclick="resetForm()" class="btn-secondary">
+                            <i class='bx bx-refresh'></i>
+                            Reset
+                        </button>
+                        <button type="submit" id="create-btn" class="btn-primary">
+                            <i class='bx bx-plus'></i>
+                            Create Doctor Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Message Display -->
+            <div id="message-display" class="message-container" style="display: none;"></div>
+        </div>
+    </div>
+</main>
+
+    <script>
+// Authentication and Authorization Configuration
+const AUTH_CONFIG = {
+    requiredRole: 'admin',
+    redirectUrl: '../html/login.html',
+    homeUrl: '../html/homepage.html'
+};
+
+// Check authentication and authorization on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await checkAuthAndAuthorization();
+    setupDropdowns();
+});
+
+// Corrected authentication check
+async function checkAuthAndAuthorization() {
+    console.log('=== CreateDoctor Auth Check ===');
+    
+    try {
+        const token = localStorage.getItem('token');
+        const userRole = localStorage.getItem('userRole');
+        
+        console.log('Token:', !!token);
+        console.log('User Role:', userRole);
+        console.log('Required Role:', AUTH_CONFIG.requiredRole);
+        
+        // Check if user is logged in
+        if (!token) {
+            console.log('No token found');
+            showUnauthorized();
+            return;
+        }
+
+        // Check if user has admin role
+        if (userRole !== AUTH_CONFIG.requiredRole) {
+            console.log('Role mismatch:', userRole, '!==', AUTH_CONFIG.requiredRole);
+            showUnauthorized();
+            return;
+        }
+
+        console.log('Auth successful - user is admin');
+        
+        // User is authenticated and authorized
+        const userData = {
+            role: userRole,
+            name: 'Admin User',
+            userId: localStorage.getItem('userId')
+        };
+        
+        showMainContent(userData);
+
+    } catch (error) {
+        console.error('❌ Auth check failed:', error);
+        showUnauthorized();
+    }
+}
+
+// Fixed showMainContent function
+function showMainContent(userData) {
+    console.log('Showing main content for:', userData);
+    
+    const loadingScreen = document.getElementById('loading-screen');
+    const mainContent = document.getElementById('main-content');
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+    
+    // Hide loading screen
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+        console.log('✅ Hidden loading screen');
+    }
+    
+    // Show main content
+    if (mainContent) {
+        mainContent.style.display = 'block';
+        console.log('✅ Shown main content');
+    }
+    
+    // Update user info in header
+    if (userName) {
+        userName.textContent = `Welcome, ${userData.name}`;
+        console.log('✅ Set user name');
+    }
+    
+    if (userInfo) {
+        userInfo.style.display = 'block';
+        console.log('✅ Shown user info');
+    }
+}
+
+function showUnauthorized() {
+    console.log('❌ Showing unauthorized screen');
+    
+    const loadingScreen = document.getElementById('loading-screen');
+    const unauthorizedScreen = document.getElementById('unauthorized-screen');
+    
+    if (loadingScreen) loadingScreen.style.display = 'none';
+    if (unauthorizedScreen) unauthorizedScreen.style.display = 'block';
+}
+
+// Form submission handler
+document.getElementById('doctor-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    await createDoctorAccount();
+});
+
+// Create doctor account function
+async function createDoctorAccount() {
+    const createBtn = document.getElementById('create-btn');
+    const originalText = createBtn.innerHTML;
+    
+    try {
+        createBtn.disabled = true;
+        createBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Creating...';
+        
+        // Get form data
+        const formData = {
+            name: document.getElementById('doctor-name').value,
+            email: document.getElementById('email').value,
+            tempPassword: document.getElementById('temp-password').value,
+            role: 'doctor'
+        };
+
+        // Validate form
+        if (!formData.name || !formData.email || !formData.tempPassword) {
+            throw new Error('Please fill in all required fields');
+        }
+
+        // Send to backend
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/admin/create-doctor', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to create doctor account');
+        }
+
+        // Success
+        alert('Doctor account created successfully!');
+        document.getElementById('doctor-form').reset();
+
+    } catch (error) {
+        console.error('Error creating doctor:', error);
+        alert(`Failed to create doctor account: ${error.message}`);
+    } finally {
+        createBtn.disabled = false;
+        createBtn.innerHTML = originalText;
+    }
+}
+
+// Utility Functions
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('message-display');
+    messageDiv.innerHTML = `
+        <div class="alert alert-${type}">
+            <i class='bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'}'></i>
+            ${message}
+        </div>
+    `;
+    messageDiv.style.display = 'block';
+    
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
+}
+
+function togglePassword() {
+    const passwordInput = document.getElementById('temp-password');
+    const passwordIcon = document.getElementById('password-icon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.classList.replace('bx-show', 'bx-hide');
+    } else {
+        passwordInput.type = 'password';
+        passwordIcon.classList.replace('bx-hide', 'bx-show');
+    }
+}
+
+function resetForm() {
+    document.getElementById('doctor-form').reset();
+    document.getElementById('message-display').style.display = 'none';
+}
+
+function redirectToLogin() {
+    window.location.href = AUTH_CONFIG.redirectUrl;
+}
+
+function goHome() {
+    window.location.href = AUTH_CONFIG.homeUrl;
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('patientId');
+    localStorage.removeItem('userId');
+    window.location.href = AUTH_CONFIG.redirectUrl;
+}
+
+// Dropdown functionality
+function setupDropdowns() {
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        dropdown.addEventListener('mouseenter', function() {
+            if (menu) {
+                menu.style.opacity = '1';
+                menu.style.visibility = 'visible';
+                menu.style.transform = 'translateY(0)';
+            }
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            if (menu) {
+                menu.style.opacity = '0';
+                menu.style.visibility = 'hidden';
+                menu.style.transform = 'translateY(-10px)';
+            }
+        });
+    });
+}
+    </script>
+</body>
+</html>

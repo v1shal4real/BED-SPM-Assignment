@@ -1,6 +1,5 @@
-
 const Joi = require('joi');
-const patientModel = require('../models/patientModel');
+const patientModel = require('../model/patientModel');
 
 const signupSchema = Joi.object({
   fullName: Joi.string().max(100).required(),

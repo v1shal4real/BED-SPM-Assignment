@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/CUDTracker.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+    <title>Home</title>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+        <div class="header-top-container">
+            <div class="header-contact">
+            <span>(+65)</span>
+            <span>English</span>
+            </div>
+            <p class="header-motto">Better Health Begins Here.</p>
+            <a href="/login/login-signup.html" class="header-top-action">
+            Login<i class='bx bx-user'></i>
+            </a>
+        </div>
+        </div>
+        <div class="nav">
+        <div class="nav-logo">
+            <h2>Anywhere<span>Doctor</span></h2>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <ul class="nav-list">
+            <li class="nav-item"><a href="../html/homepage.html" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="/products.html" class="nav-link">Medication</a></li>
+            <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
+            <li class="nav-item nav-dropdown">
+              <a href="#" class="nav-link">Tracker <i class='bx bx-chevron-down'></i></a>
+                <ul class="dropdown-menu">
+                    <li><a href="../html/TrackersMain.html">Medical Tracker</a></li>
+                    <li><a href="../html/CUDTracker.html">Create Medical Tracker</a></li>
+                    <li><a href="/html/AppointmentTrackers.html">Appointment Tracker</a></li>
+                </ul>
+            </li>
+            <li class="nav-item nav-dropdown">
+              <a href="#" class="nav-link">Admin <i class='bx bx-chevron-down'></i></a>
+              <ul class="dropdown-menu">
+                <li><a href="../html/CreateDoctor.html">Create Doctor</a></li>
+                <li><a href="../html/ManageDoctors.html">Manage Doctors</a></li>
+            </ul>
+            <div class="header-user-actions">
+            <a href="wishlist.html" class="header-action-btn">
+                <i class='bx bxs-heart' style="color: red;"></i>
+                <span class="count"></span>
+            </a>
+            <a href="chats.html" class="header-action-btn">
+                <i class='bx bx-message-square-dots' style="color: black;"></i>
+                <span class="count"></span>
+            </a>
+            </div>
+        </div>
+        </div>
+    </header>
+<main>
+  <div class="container">
+    <h2>Create a Medication to Track</h2>
+    <div class="form-box">
+      <form id="tracker-form">
+        <div class="form-left">
+          <label>Patient ID</label>
+          <input type="text" id="patient-id" required>
+
+          <label>Medication ID</label>
+          <input type="text" id="medication-id" required>
+
+          <label>Medication Name</label>
+          <input type="text" id="medication-name" placeholder="Enter medication name">
+
+          <label>Quantity</label>
+          <input type="number" id="quantity" required>
+
+          <label>Day of the Week</label>
+          <input type="text" id="day-of-week" required>
+
+          <label>Time of the Day</label>
+          <input type="text" id="time-of-day" required>
+        </div>
+
+        <div class="form-right">
+          <div class="upload-box">
+            <div class="upload-image">
+              <img id="preview-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Image_icon_01.svg/512px-Image_icon_01.svg.png" alt="upload icon">
+              <p>UPLOAD IMAGE</p>
+            </div>
+            <input type="file" id="image-input" accept="image/*" style="margin-top:10px;">
+          </div>
+        </div>
+      </form>
+      <button class="create-btn" id="create-btn">Create</button>
+    </div>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+// Authentication Configuration
+const AUTH_CONFIG = {
+    allowedRoles: ['admin', 'doctor'],
+    redirectUrl: '../html/login.html',
+    unauthorizedUrl: '../html/homepage.html'
+};
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await checkAuthAndAuthorization();
+    setupDropdowns();
+});
+
+// Authentication check function
+async function checkAuthAndAuthorization() {
+    console.log('=== CUDTracker Auth Check ===');
+    
+    try {
+        const token = localStorage.getItem('token');
+        const userRole = localStorage.getItem('userRole');
+        
+        console.log('Token:', !!token);
+        console.log('User Role:', userRole);
+        console.log('Allowed Roles:', AUTH_CONFIG.allowedRoles);
+        
+        // Check if user is logged in
+        if (!token) {
+            console.log('No token found');
+            showUnauthorized('Please log in to access this page.');
+            return;
+        }
+
+        // Check if user has allowed role (admin or doctor)
+        if (!AUTH_CONFIG.allowedRoles.includes(userRole)) {
+            console.log('Role not allowed:', userRole);
+            showUnauthorized('Access denied. Only administrators and doctors can create medication trackers.');
+            return;
+        }
+
+        console.log('Auth successful - user has access');
+        showMainContent(userRole);
+
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        showUnauthorized('Authentication error. Please try logging in again.');
+    }
+}
+
+function showMainContent(userRole) {
+    console.log('Showing main content for role:', userRole);
+    
+    // Update header to show user info
+    const loginLink = document.querySelector('.header-top-action');
+    if (loginLink) {
+        loginLink.innerHTML = `
+            <span id="user-name">Welcome, ${userRole.toUpperCase()}</span>
+            <button onclick="logout()" style="margin-left: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">Logout</button>
+        `;
+    }
+    
+    // Show the main content
+    document.querySelector('main').style.display = 'block';
+    
+    // Add role-specific functionality
+    if (userRole === 'doctor') {
+        // For doctors, pre-fill patient ID if they're viewing specific patient
+        const patientIdField = document.getElementById('patient-id');
+        const currentPatientId = localStorage.getItem('patientId');
+        if (currentPatientId && patientIdField) {
+            patientIdField.value = currentPatientId;
+        }
+    }
+}
+
+function showUnauthorized(message) {
+    console.log('Showing unauthorized screen');
+    
+    // Hide main content
+    document.querySelector('main').style.display = 'none';
+    
+    // Create and show unauthorized message
+    const unauthorizedDiv = document.createElement('div');
+    unauthorizedDiv.innerHTML = `
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 40px;
+        ">
+            <div style="
+                background: white;
+                padding: 40px;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                max-width: 500px;
+            ">
+                <i class='bx bx-shield-x' style="font-size: 4rem; color: #dc3545; margin-bottom: 20px;"></i>
+                <h2 style="color: #dc3545; margin-bottom: 20px;">Access Denied</h2>
+                <p style="margin-bottom: 30px; color: #666;">${message}</p>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button onclick="redirectToLogin()" style="
+                        background: #1976d2;
+                        color: white;
+                        padding: 12px 24px;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">Login</button>
+                    <button onclick="goHome()" style="
+                        background: #6c757d;
+                        color: white;
+                        padding: 12px 24px;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">Go Home</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(unauthorizedDiv);
+}
+
+// Utility functions
+function redirectToLogin() {
+    window.location.href = AUTH_CONFIG.redirectUrl;
+}
+
+function goHome() {
+    window.location.href = AUTH_CONFIG.unauthorizedUrl;
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('patientId');
+    localStorage.removeItem('userId');
+    window.location.href = AUTH_CONFIG.redirectUrl;
+}
+
+// Dropdown functionality
+function setupDropdowns() {
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        dropdown.addEventListener('mouseenter', function() {
+            if (menu) {
+                menu.style.opacity = '1';
+                menu.style.visibility = 'visible';
+                menu.style.transform = 'translateY(0)';
+            }
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            if (menu) {
+                menu.style.opacity = '0';
+                menu.style.visibility = 'hidden';
+                menu.style.transform = 'translateY(-10px)';
+            }
+        });
+    });
+}
+
+// Image upload and medication creation functions
+const apiBaseUrl = 'http://localhost:3000';
+let selectedImageFile = null;
+
+document.getElementById('image-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    selectedImageFile = file;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      document.getElementById('preview-img').src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// Helper: Convert file to base64 and compress if needed
+function toBase64(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = function() {
+      // Calculate new dimensions
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      
+      // Set canvas size
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressedDataUrl);
+    };
+    
+    img.onerror = reject;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Show message to user
+function showMessage(message, type) {
+  // Create or update message element
+  let messageElement = document.getElementById('message-display');
+  if (!messageElement) {
+    messageElement = document.createElement('div');
+    messageElement.id = 'message-display';
+    messageElement.style.cssText = 'margin: 10px 0; padding: 10px; border-radius: 4px; text-align: center;';
+    document.querySelector('.form-box').insertBefore(messageElement, document.querySelector('.create-btn'));
+  }
+  
+  messageElement.textContent = message;
+  messageElement.className = type;
+  
+  // Style based on type
+  switch(type) {
+    case 'success':
+      messageElement.style.background = '#d4edda';
+      messageElement.style.color = '#155724';
+      messageElement.style.border = '1px solid #c3e6cb';
+      break;
+    case 'error':
+      messageElement.style.background = '#f8d7da';
+      messageElement.style.color = '#721c24';
+      messageElement.style.border = '1px solid #f5c6cb';
+      break;
+    case 'loading':
+      messageElement.style.background = '#d1ecf1';
+      messageElement.style.color = '#0c5460';
+      messageElement.style.border = '1px solid #bee5eb';
+      break;
+    default:
+      messageElement.style.background = '#e2e3e5';
+      messageElement.style.color = '#383d41';
+      messageElement.style.border = '1px solid #d6d8db';
+  }
+}
+
+// Hybrid image upload function
+async function uploadMedicationImage() {
+  if (!selectedImageFile) {
+    return null; // No image to upload
+  }
+
+  try {
+    showMessage('Uploading image...', 'loading');
+    let imageUrl = null;
+
+    // Method 1: Try backend upload first (more secure)
+    try {
+      console.log('Attempting backend upload...');
+      const base64Image = await toBase64(selectedImageFile);
+
+      const uploadResponse = await fetch(`${apiBaseUrl}/upload-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: base64Image })
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Backend upload failed: ${uploadResponse.status}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      imageUrl = uploadResult.url;
+      console.log('Backend upload successful:', imageUrl);
+
+    } catch (backendError) {
+      console.log('Backend upload failed, trying direct Cloudinary...', backendError.message);
+      
+      // Method 2: Fallback to direct Cloudinary upload
+      try {
+        showMessage('Trying alternative upload method...', 'loading');
+        
+        const formData = new FormData();
+        formData.append('file', selectedImageFile);
+        formData.append('upload_preset', 'ml_default'); // Unsigned preset
+        formData.append('cloud_name', 'dgtx0alyb');
+
+        const cloudinaryResponse = await fetch('https://api.cloudinary.com/v1_1/dgtx0alyb/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!cloudinaryResponse.ok) {
+          throw new Error(`Cloudinary upload failed: ${cloudinaryResponse.status}`);
+        }
+
+        const cloudinaryResult = await cloudinaryResponse.json();
+        imageUrl = cloudinaryResult.secure_url;
+        console.log('Direct Cloudinary upload successful:', imageUrl);
+
+      } catch (cloudinaryError) {
+        console.log('Direct Cloudinary upload also failed:', cloudinaryError.message);
+        
+        // Method 3: Final fallback - signed upload with your credentials
+        try {
+          showMessage('Trying signed upload...', 'loading');
+          
+          const timestamp = Math.round((new Date()).getTime() / 1000);
+          
+          const formDataSigned = new FormData();
+          formDataSigned.append('file', selectedImageFile);
+          formDataSigned.append('api_key', '931192727676242');
+          formDataSigned.append('timestamp', timestamp);
+          formDataSigned.append('cloud_name', 'dgtx0alyb');
+
+          const signedResponse = await fetch('https://api.cloudinary.com/v1_1/dgtx0alyb/image/upload', {
+            method: 'POST',
+            body: formDataSigned
+          });
+
+          if (!signedResponse.ok) {
+            throw new Error(`Signed upload failed: ${signedResponse.status}`);
+          }
+
+          const signedResult = await signedResponse.json();
+          imageUrl = signedResult.secure_url;
+          console.log('Signed upload successful:', imageUrl);
+
+        } catch (signedError) {
+          throw new Error(`All upload methods failed. Backend: ${backendError.message}, Cloudinary: ${cloudinaryError.message}, Signed: ${signedError.message}`);
+        }
+      }
+    }
+
+    if (!imageUrl) {
+      throw new Error('No image URL received from upload');
+    }
+
+    return imageUrl;
+
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    showMessage(`Failed to upload image: ${error.message}`, 'error');
+    throw error;
+  }
+}
+
+// Main medication creation function
+async function createMedicationWithImage() {
+  const createBtn = document.getElementById('create-btn');
+  const originalText = createBtn.textContent;
+  
+  try {
+    // Disable button and show loading
+    createBtn.disabled = true;
+    createBtn.textContent = 'Creating...';
+    
+    // Get form data
+    const patientId = document.getElementById('patient-id').value;
+    const medicationId = document.getElementById('medication-id').value;
+    const medicationName = document.getElementById('medication-name').value; // Add this line
+    const quantity = document.getElementById('quantity').value;
+    const dayOfWeek = document.getElementById('day-of-week').value;
+    const timeOfDay = document.getElementById('time-of-day').value;
+
+    // Validate required fields
+    if (!patientId || !medicationId || !quantity || !dayOfWeek || !timeOfDay) {
+      showMessage('Please fill in all required fields.', 'error');
+      return;
+    }
+
+    let imageUrl = null;
+    
+    // Upload image if selected
+    if (selectedImageFile) {
+      imageUrl = await uploadMedicationImage();
+    }
+
+    // Prepare medication data
+    const medicationData = {
+      PatientID: parseInt(patientId),
+      MedicationID: parseInt(medicationId),
+      MedicationName: medicationName, // Add this line
+      Quantity: parseInt(quantity),
+      DayOfWeek: dayOfWeek,
+      TimeOfDay: timeOfDay,
+      ImageURL: imageUrl
+    };
+
+    showMessage('Creating medication...', 'loading');
+
+    // Create medication
+    const response = await fetch(`${apiBaseUrl}/Tracker`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(medicationData)
+    });
+
+    if (!response.ok) {
+      const errorBody = response.headers
+        .get("content-type")
+        ?.includes("application/json")
+        ? await response.json()
+        : { message: response.statusText };
+      throw new Error(`Failed to create medication: ${response.status}, message: ${errorBody.message || errorBody.error}`);
+    }
+
+    const result = await response.json();
+    showMessage('Medication created successfully!', 'success');
+    
+    // Reset form
+    document.getElementById('tracker-form').reset();
+    document.getElementById('preview-img').src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Image_icon_01.svg/512px-Image_icon_01.svg.png';
+    selectedImageFile = null;
+
+    // Optionally redirect to tracker list
+    setTimeout(() => {
+      window.location.href = '../html/TrackersMain.html';
+    }, 2000);
+
+  } catch (error) {
+    console.error('Error creating medication:', error);
+    showMessage(`Failed to create medication: ${error.message}`, 'error');
+  } finally {
+    // Restore button state
+    createBtn.disabled = false;
+    createBtn.textContent = originalText;
+  }
+}
+
+// Update medication function (for edit functionality)
+async function updateMedicationWithImage(patientId, oldMedicationId) {
+  const createBtn = document.getElementById('create-btn');
+  const originalText = createBtn.textContent;
+  
+  try {
+    // Disable button and show loading
+    createBtn.disabled = true;
+    createBtn.textContent = 'Updating...';
+    
+    // Get form data
+    const medicationId = document.getElementById('medication-id').value;
+    const medicationName = document.getElementById('medication-name').value; // Add this line
+    const quantity = document.getElementById('quantity').value;
+    const dayOfWeek = document.getElementById('day-of-week').value;
+    const timeOfDay = document.getElementById('time-of-day').value;
+
+    let imageUrl = null;
+    
+    // Upload new image if selected
+    if (selectedImageFile) {
+      imageUrl = await uploadMedicationImage();
+    }
+
+    // Prepare medication data
+    const medicationData = {
+      MedicationID: parseInt(medicationId),
+      MedicationName: medicationName, // Add this line
+      Quantity: parseInt(quantity),
+      DayOfWeek: dayOfWeek,
+      TimeOfDay: timeOfDay
+    };
+
+    // Only include ImageURL if we have a new one
+    if (imageUrl) {
+      medicationData.ImageURL = imageUrl;
+    }
+
+    showMessage('Updating medication...', 'loading');
+
+    // Update medication
+    const response = await fetch(`${apiBaseUrl}/Tracker/${patientId}/${oldMedicationId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(medicationData)
+    });
+
+    if (!response.ok) {
+      const errorBody = response.headers
+        .get("content-type")
+        ?.includes("application/json")
+        ? await response.json()
+        : { message: response.statusText };
+      throw new Error(`Failed to update medication: ${response.status}, message: ${errorBody.message || errorBody.error}`);
+    }
+
+    const result = await response.json();
+    showMessage('Medication updated successfully!', 'success');
+
+    // Optionally redirect to tracker list
+    setTimeout(() => {
+      window.location.href = '../html/TrackersMain.html';
+    }, 2000);
+
+  } catch (error) {
+    console.error('Error updating medication:', error);
+    showMessage(`Failed to update medication: ${error.message}`, 'error');
+  } finally {
+    // Restore button state
+    createBtn.disabled = false;
+    createBtn.textContent = originalText;
+  }
+}
+
+// Event listener for create button
+document.getElementById('create-btn').addEventListener('click', async function(e) {
+  e.preventDefault();
+  await createMedicationWithImage();
+});
+
+// For edit functionality, you can call updateMedicationWithImage(patientId, oldMedicationId)
+// when you're in edit mode instead of createMedicationWithImage()
+</script>
+</body>
+</html>

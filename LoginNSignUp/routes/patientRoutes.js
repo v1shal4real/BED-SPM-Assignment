@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const patientController = require('../controllers/VishalController');
+const patientController = require('../controller/patientController');
 
 router.post('/signup', patientController.signup);
 router.get('/profile/:id', patientController.getProfile);
