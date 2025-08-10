@@ -149,6 +149,132 @@ class CyModel {
             throw err;
         }
     }
+    
+    // Get medical details for a patient
+    static async getMedicalDetailsByPatient(patientId) {
+        try {
+            await sql.connect(dbConfig);
+            const request = new sql.Request();
+            request.input('PatientID', sql.Int, patientId);
+            const result = await request.query(`
+                SELECT 
+                    md.DetailID,
+                    md.RecordID,
+                    md.Symptoms,
+                    md.Diagnosis,
+                    md.BloodPressure,
+                    md.Temperature,
+                    md.Allergies,
+                    md.LabResults,
+                    md.DoctorNotes,
+                    md.FollowUpRequired,
+                    r.RecordDateTime,
+                    d.FullName as DoctorName
+                FROM MedicalRecordDetails md
+                INNER JOIN MedicalRecords r ON md.RecordID = r.RecordID
+                INNER JOIN Doctors d ON r.DoctorID = d.DoctorID
+                WHERE r.PatientID = @PatientID
+                ORDER BY r.RecordDateTime DESC
+            `);
+            await sql.close();
+            return result.recordset;
+        } catch (err) {
+            console.error('Error fetching medical details:', err);
+            await sql.close();
+            throw err;
+        }
+    }
+
+    // Create new medical detail
+    static async createMedicalDetail(detailData) {
+        try {
+            await sql.connect(dbConfig);
+            const request = new sql.Request();
+            request.input('RecordID', sql.Int, detailData.RecordID);
+            request.input('Symptoms', sql.NVarChar(500), detailData.Symptoms);
+            request.input('Diagnosis', sql.NVarChar(255), detailData.Diagnosis);
+            request.input('BloodPressure', sql.NVarChar(20), detailData.BloodPressure);
+            request.input('Temperature', sql.Decimal(4,1), detailData.Temperature);
+            request.input('Allergies', sql.NVarChar(255), detailData.Allergies);
+            request.input('LabResults', sql.NVarChar(500), detailData.LabResults);
+            request.input('DoctorNotes', sql.NVarChar(1000), detailData.DoctorNotes);
+            request.input('FollowUpRequired', sql.Bit, detailData.FollowUpRequired);
+
+            const result = await request.query(`
+                INSERT INTO MedicalRecordDetails 
+                (RecordID, Symptoms, Diagnosis, BloodPressure, Temperature, Allergies, LabResults, DoctorNotes, FollowUpRequired)
+                VALUES (@RecordID, @Symptoms, @Diagnosis, @BloodPressure, @Temperature, @Allergies, @LabResults, @DoctorNotes, @FollowUpRequired);
+                SELECT SCOPE_IDENTITY() as DetailID;
+            `);
+
+            await sql.close();
+            return result.recordset[0].DetailID;
+        } catch (err) {
+            console.error('Error creating medical detail:', err);
+            await sql.close();
+            throw err;
+        }
+    }
+
+    // Update medical detail
+    static async updateMedicalDetail(detailId, detailData) {
+        try {
+            await sql.connect(dbConfig);
+            const request = new sql.Request();
+            request.input('DetailID', sql.Int, detailId);
+            request.input('RecordID', sql.Int, detailData.RecordID);
+            request.input('Symptoms', sql.NVarChar(500), detailData.Symptoms);
+            request.input('Diagnosis', sql.NVarChar(255), detailData.Diagnosis);
+            request.input('BloodPressure', sql.NVarChar(20), detailData.BloodPressure);
+            request.input('Temperature', sql.Decimal(4,1), detailData.Temperature);
+            request.input('Allergies', sql.NVarChar(255), detailData.Allergies);
+            request.input('LabResults', sql.NVarChar(500), detailData.LabResults);
+            request.input('DoctorNotes', sql.NVarChar(1000), detailData.DoctorNotes);
+            request.input('FollowUpRequired', sql.Bit, detailData.FollowUpRequired);
+
+            const result = await request.query(`
+                UPDATE MedicalRecordDetails
+                SET RecordID = @RecordID,
+                    Symptoms = @Symptoms,
+                    Diagnosis = @Diagnosis,
+                    BloodPressure = @BloodPressure,
+                    Temperature = @Temperature,
+                    Allergies = @Allergies,
+                    LabResults = @LabResults,
+                    DoctorNotes = @DoctorNotes,
+                    FollowUpRequired = @FollowUpRequired
+                WHERE DetailID = @DetailID
+            `);
+
+            await sql.close();
+            return result.rowsAffected[0] > 0;
+        } catch (err) {
+            console.error('Error updating medical detail:', err);
+            await sql.close();
+            throw err;
+        }
+    }
+
+    // Delete medical detail
+    static async deleteMedicalDetail(detailId) {
+        try {
+            await sql.connect(dbConfig);
+            const request = new sql.Request();
+            request.input('DetailID', sql.Int, detailId);
+
+            const result = await request.query(`
+                DELETE FROM MedicalRecordDetails
+                WHERE DetailID = @DetailID
+            `);
+
+            await sql.close();
+            return result.rowsAffected[0] > 0;
+        } catch (err) {
+            console.error('Error deleting medical detail:', err);
+            await sql.close();
+            throw err;
+        }
+    }
 }
 
 module.exports = CyModel;

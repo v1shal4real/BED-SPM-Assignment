@@ -170,6 +170,12 @@ const {
   deleteMed
 } = require("./MedicationStore/controller/KhairiController.js");  // Medication Store Controller    
 
+const cyController = require("./MedicalRecord/controller/CyController");
+const {
+  validate,
+  handleValidationError
+} = require("./MedicalRecord/middleware/CyValidation");
+
 const {
   addOrUpdateCart,
   getCart,
@@ -183,6 +189,7 @@ const port = process.env.PORT || 3000;
 // ─── Middleware ────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "FrontEnd")));
 
 // ─── Medications Routes ────────────────────────────────────────
 app.get   ("/medications",      fetchAllMeds);
@@ -197,10 +204,37 @@ app.get    ("/api/cart/:userId", getCart);              // View all items in a u
 app.put    ("/api/cart/update",  updateCart);           // Manually update quantity
 app.delete ("/api/cart/delete",  removeFromCart);       // Remove an item from the cart
 
+// ─── Get patients route (CY) ───────────────────────────────────────────────
+app.get('/patients', cyController.getAllPatients);
+app.get('/patients/:id', validate.patientId, cyController.getPatientById);
+
+// ─── Appointment Records Details (CY) ───────────────────────────────────────────────
+app.get('/records/patient/:id', validate.patientId, cyController.getAppointmentRecord);
+app.put('/records/:id', validate.recordId, validate.recordUpdateData, cyController.updateAppointmentRecord);
+app.delete('/records/:id', validate.recordId, cyController.deleteAppointmentRecord);
+
+// ─── Medical Record Details (CY) ───────────────────────────────────────────────
+app.get('/medical-details/patient/:id', validate.patientId, cyController.getMedicalDetailsByPatient);
+app.post('/medical-details', cyController.createMedicalDetail);
+app.put('/medical-details/:id', cyController.updateMedicalDetail);
+app.delete('/medical-details/:id', cyController.deleteMedicalDetail);
+
+// ─── Get doctor route (CY) ───────────────────────────────────────────────
+app.get('/doctors', cyController.getAllDoctors);
+
+// ─── Login (V) ───────────────────────────────────────────────
+app.post('/api/login', loginController.login);
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'html', 'login.html'));
+});
+
 // ─── Static Files ──────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, "FrontEnd/html")));
 app.use(express.static(path.join(__dirname, "MedicationStore/public")));
 app.use("/css", express.static(path.join(__dirname, "FrontEnd/css")));
+
+// ─── Error Handling ──────────────────────────────────────────────
+app.use(handleValidationError);
 
 // ─── Server Startup & Shutdown ────────────────────────────────
 app.listen(port, () =>

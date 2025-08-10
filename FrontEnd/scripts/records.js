@@ -5,20 +5,33 @@ let currentRecords = [];
 let allDoctors = [];
 let editingRecordId = null;
 const apiBaseUrl = "http://localhost:3000";
+// second feature
+let currentMedicalDetails = [];
+let editingDetailId = null;
 
-// Initialize the application
+// Get user role and id from localStorage
+const userRole = localStorage.getItem('role');
+const userId = localStorage.getItem('id');
+
+// Initialize app
 document.addEventListener('DOMContentLoaded', function() {
-    loadAllPatients();
-    loadAllDoctors();
-    setupEventListeners();
+    if (userRole === 'patient') {
+        // Hide search section for patients
+        document.querySelector('.search-section').style.display = 'none';
+        // Show only their own data
+        viewPatientDetail(parseInt(userId));
+    } else {
+        // For doctor login: show all patients and search
+        loadAllPatients();
+        loadAllDoctors();
+        setupEventListeners();
+    }
 });
 
-// Setup event listeners
+// Event listeners
 function setupEventListeners() {
-    // Record form submission
-    document.getElementById('appointmentForm').addEventListener('submit', handleRecordFormSubmit);
-    
-    // Close modals when clicking outside
+    document.getElementById('appointmentForm').addEventListener('submit', handleRecordFormSubmit); // feature 1
+    document.getElementById('medicalDetailForm').addEventListener('submit', handleMedicalDetailFormSubmit); // feature 2
     window.addEventListener('click', function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
@@ -118,7 +131,7 @@ async function searchPatientById() {
         await viewPatientDetail(parseInt(patientId));
     } catch (error) {
         console.error('Error searching patient:', error);
-        alert('Patient not found or error occurred while searching.');
+        alert('Patient not found or error occurred');
     }
 }
 
@@ -142,18 +155,34 @@ async function viewPatientDetail(patientId) {
         }
 
         displayPatientDetail();
+
+        const detailsResponse = await fetch(`${apiBaseUrl}/medical-details/patient/${patientId}`);
+        if (detailsResponse.ok) {
+            currentMedicalDetails = await detailsResponse.json();
+        } else {
+            currentMedicalDetails = [];
+        }
+
+        displayMedicalDetails();
+
     } catch (error) {
         console.error('Error loading patient detail:', error);
         document.getElementById('patientDetailContainer').innerHTML = 
-            '<div class="error">Failed to load patient details. Please try again.</div>';
+            '<div class="error">Failed to load patient details</div>';
     }
 }
 
 // Display patient detail view
 function displayPatientDetail() {
     const container = document.getElementById('patientDetailContainer');
-    
+    const canEdit = userRole === 'doctor';
+
+    const backButtonHTML = canEdit
+        ? `<button onclick="showAllPatients()" class="back-btn">Back to All Patients</button>`
+        : '';
+
     const patientDetailHTML = `
+        ${backButtonHTML}
         <div class="patient-detail">
             <h2>Patient Information</h2>
             <div class="patient-info">
@@ -185,7 +214,7 @@ function displayPatientDetail() {
         </div>
 
         <div class="appointments-section">
-            <h2>Medical Records</h2>
+            <h2>Appointment Records</h2>
             <div id="recordsContainer">
                 ${currentRecords.length === 0 ? 
                     '<p>No medical records found for this patient.</p>' :
@@ -198,13 +227,25 @@ function displayPatientDetail() {
                             <div class="appointment-details">
                                 <strong>Venue:</strong> ${record.Venue} | <strong>Room:</strong> ${record.RoomNumber}
                             </div>
+                            ${canEdit ? `
                             <div class="appointment-actions">
                                 <button onclick="editRecord(${record.RecordID})" class="btn btn-edit">Edit</button>
                                 <button onclick="deleteRecord(${record.RecordID})" class="btn btn-delete">Delete</button>
                             </div>
+                            ` : ''}
                         </div>
                     `).join('')
                 }
+            </div>
+        </div>
+
+        <div class="medical-details-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>Medical Record Details</h2>
+                ${canEdit ? `<button onclick="openCreateMedicalDetailModal()" class="btn btn-primary">Add Medical Detail</button>` : ''}
+            </div>
+            <div id="medicalDetailsContainer">
+                <p>No medical details found for this patient.</p>
             </div>
         </div>
     `;
@@ -212,8 +253,235 @@ function displayPatientDetail() {
     container.innerHTML = patientDetailHTML;
 }
 
+// Display medical details
+
+function displayMedicalDetails() {
+    const container = document.getElementById('medicalDetailsContainer');
+    if (currentMedicalDetails.length === 0) {
+        container.innerHTML = '<p>No medical details found for this patient.</p>';
+        return;
+    }
+    const canEdit = userRole === 'doctor';
+    container.innerHTML = currentMedicalDetails.map(detail => `
+        <div class="medical-detail-card" onclick="viewMedicalDetail(${detail.DetailID})">
+            <div class="medical-detail-summary">
+                <div>
+                    <div class="detail-diagnosis">${detail.Diagnosis}</div>
+                    <div class="detail-date">${formatDateTime(detail.RecordDateTime)}</div>
+                </div>
+                ${canEdit ? `
+                <div class="detail-actions" onclick="event.stopPropagation()">
+                    <button onclick="editMedicalDetail(${detail.DetailID})" class="btn btn-edit">Edit</button>
+                    <button onclick="deleteMedicalDetail(${detail.DetailID})" class="btn btn-delete">Delete</button>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+// View full medical detail
+function viewMedicalDetail(detailId) {
+    const detail = currentMedicalDetails.find(d => d.DetailID === detailId);
+    if (!detail) return;
+
+    const content = `
+        <div class="medical-detail-full">
+            <h3>Medical Record Detail</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <strong>Appointment Date:</strong>
+                    ${formatDateTime(detail.RecordDateTime)}
+                </div>
+                <div class="detail-item">
+                    <strong>Doctor:</strong>
+                    ${detail.DoctorName}
+                </div>
+                <div class="detail-item">
+                    <strong>Diagnosis:</strong>
+                    ${detail.Diagnosis || 'N/A'}
+                </div>
+                <div class="detail-item">
+                    <strong>Blood Pressure:</strong>
+                    ${detail.BloodPressure || 'N/A'}
+                </div>
+                <div class="detail-item">
+                    <strong>Temperature:</strong>
+                    ${detail.Temperature ? detail.Temperature + '°C' : 'N/A'}
+                </div>
+                <div class="detail-item">
+                    <strong>Allergies:</strong>
+                    ${detail.Allergies || 'None'}
+                </div>
+                <div class="detail-item">
+                    <strong>Follow-up Required:</strong>
+                    ${detail.FollowUpRequired ? 'Yes' : 'No'}
+                </div>
+            </div>
+            <div class="detail-item" style="margin-bottom: 15px;">
+                <strong>Symptoms:</strong>
+                <div style="margin-top: 5px;">${detail.Symptoms || 'N/A'}</div>
+            </div>
+            <div class="detail-item" style="margin-bottom: 15px;">
+                <strong>Lab Results:</strong>
+                <div style="margin-top: 5px;">${detail.LabResults || 'N/A'}</div>
+            </div>
+            <div class="detail-item">
+                <strong>Doctor Notes:</strong>
+                <div style="margin-top: 5px;">${detail.DoctorNotes || 'N/A'}</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('medicalDetailViewContent').innerHTML = content;
+    document.getElementById('medicalDetailViewModal').style.display = 'block';
+}
+
+// Open create medical detail modal
+function openCreateMedicalDetailModal() {
+    if (userRole !== 'doctor') return;
+    editingDetailId = null;
+    document.getElementById('medicalDetailModalTitle').textContent = 'Add Medical Detail';
+    document.getElementById('saveMedicalDetailBtn').textContent = 'Save';
+    
+    // Populate record dropdown
+    const recordSelect = document.getElementById('recordSelect');
+    recordSelect.innerHTML = '<option value="">Select Appointment</option>';
+    currentRecords.forEach(record => {
+        const option = document.createElement('option');
+        option.value = record.RecordID;
+        option.textContent = `${formatDateTime(record.RecordDateTime)} - ${record.DoctorName}`;
+        recordSelect.appendChild(option);
+    });
+
+    // Clear form
+    document.getElementById('medicalDetailForm').reset();
+    document.getElementById('medicalDetailModal').style.display = 'block';
+}
+
+// Edit medical detail
+function editMedicalDetail(detailId) {
+    if (userRole !== 'doctor') return;
+    editingDetailId = detailId;
+    const detail = currentMedicalDetails.find(d => d.DetailID === detailId);
+    if (!detail) return;
+
+    document.getElementById('medicalDetailModalTitle').textContent = 'Edit Medical Detail';
+    document.getElementById('saveMedicalDetailBtn').textContent = 'Update';
+
+    // Populate record dropdown
+    const recordSelect = document.getElementById('recordSelect');
+    recordSelect.innerHTML = '<option value="">Select Appointment</option>';
+    currentRecords.forEach(record => {
+        const option = document.createElement('option');
+        option.value = record.RecordID;
+        option.textContent = `${formatDateTime(record.RecordDateTime)} - ${record.DoctorName}`;
+        recordSelect.appendChild(option);
+    });
+
+    // Populate form with existing data
+    document.getElementById('recordSelect').value = detail.RecordID;
+    document.getElementById('symptoms').value = detail.Symptoms || '';
+    document.getElementById('diagnosis').value = detail.Diagnosis || '';
+    document.getElementById('bloodPressure').value = detail.BloodPressure || '';
+    document.getElementById('temperature').value = detail.Temperature || '';
+    document.getElementById('allergies').value = detail.Allergies || '';
+    document.getElementById('labResults').value = detail.LabResults || '';
+    document.getElementById('doctorNotes').value = detail.DoctorNotes || '';
+    document.getElementById('followUpRequired').value = detail.FollowUpRequired ? '1' : '0';
+
+    document.getElementById('medicalDetailModal').style.display = 'block';
+}
+
+// Handle medical detail form submission
+async function handleMedicalDetailFormSubmit(event) {
+    if (userRole !== 'doctor') return;
+    event.preventDefault();
+
+    const formData = {
+        RecordID: parseInt(document.getElementById('recordSelect').value),
+        Symptoms: document.getElementById('symptoms').value,
+        Diagnosis: document.getElementById('diagnosis').value,
+        BloodPressure: document.getElementById('bloodPressure').value,
+        Temperature: parseFloat(document.getElementById('temperature').value) || null,
+        Allergies: document.getElementById('allergies').value,
+        LabResults: document.getElementById('labResults').value,
+        DoctorNotes: document.getElementById('doctorNotes').value,
+        FollowUpRequired: parseInt(document.getElementById('followUpRequired').value)
+    };
+
+    try {
+        let response;
+        if (editingDetailId) {
+            response = await fetch(`${apiBaseUrl}/medical-details/${editingDetailId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        } else {
+            response = await fetch(`${apiBaseUrl}/medical-details`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        }
+
+        if (!response.ok) throw new Error('Failed to save medical detail');
+
+        closeMedicalDetailModal();
+        showSuccess(`Medical detail ${editingDetailId ? 'updated' : 'created'} successfully!`);
+        
+        // Reload medical details
+        const detailsResponse = await fetch(`${apiBaseUrl}/medical-details/patient/${currentPatient.PatientID}`);
+        if (detailsResponse.ok) {
+            currentMedicalDetails = await detailsResponse.json();
+            displayMedicalDetails();
+        }
+
+    } catch (error) {
+        console.error('Error saving medical detail:', error);
+        alert('Failed to save medical detail. Please try again.');
+    }
+}
+
+// Delete medical detail
+async function deleteMedicalDetail(detailId) {
+    if (userRole !== 'doctor') return;
+    if (!confirm('Are you sure you want to delete this medical detail? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/medical-details/${detailId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Failed to delete medical detail');
+
+        showSuccess('Medical detail deleted successfully!');
+        currentMedicalDetails = currentMedicalDetails.filter(d => d.DetailID !== detailId);
+        displayMedicalDetails();
+
+    } catch (error) {
+        console.error('Error deleting medical detail:', error);
+        alert('Failed to delete medical detail. Please try again.');
+    }
+}
+
+// Modal functions
+function closeMedicalDetailModal() {
+    document.getElementById('medicalDetailModal').style.display = 'none';
+    editingDetailId = null;
+}
+
+function closeMedicalDetailViewModal() {
+    document.getElementById('medicalDetailViewModal').style.display = 'none';
+}
+
+
 // Edit record
 function editRecord(recordId) {
+    if (userRole !== 'doctor') return;
     editingRecordId = recordId;
     
     // Find record data
@@ -234,6 +502,7 @@ function editRecord(recordId) {
 
 // Handle record form submission
 async function handleRecordFormSubmit(event) {
+    if (userRole !== 'doctor') return;
     event.preventDefault();
     
     const formData = {
@@ -257,10 +526,9 @@ async function handleRecordFormSubmit(event) {
         closeAppointmentModal();
         showSuccess('Medical record updated successfully!');
         
-        // Reload the record
-        if (editingRecordId) {
-            document.getElementById('recordIdSearch').value = editingRecordId;
-            await loadAppointmentRecord();
+        // Reload patient details to refresh the display
+        if (currentPatient) {
+            await viewPatientDetail(currentPatient.PatientID);
         }
         
     } catch (error) {
@@ -271,6 +539,7 @@ async function handleRecordFormSubmit(event) {
 
 // Delete record
 async function deleteRecord(recordId) {
+    if (userRole !== 'doctor') return;
     if (!confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
         return;
     }
@@ -326,6 +595,7 @@ function showAllPatients() {
     document.getElementById('patientIdSearch').value = '';
     currentPatient = null;
     currentRecords = [];
+    currentMedicalDetails = [];
 }
 
 // Utility functions

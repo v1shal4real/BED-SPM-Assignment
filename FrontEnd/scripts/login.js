@@ -41,11 +41,16 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     alert('Network error. Please try again.');
   }
 });
-//REMOVE THIS AFTER DEBUGGING
+
+
+const bcrypt = require('bcryptjs');
+const password = 'your_doctor_password';
+bcrypt.hash(password, 10, (err, hash) => {
+  if (err) throw err;
+  console.log(hash); 
+});
+
 console.log('Email:', email);
-console.log('User found:', user);
-console.log('Password entered:', password);
-console.log('Password hash in DB:', user?.PasswordHash);
 console.log('Response status:', res.status);
 
 
