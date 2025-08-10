@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="/css/cart.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-top-container">
+                <div class="header-contact">
+                    <span>(+65)</span>
+                    <span>English</span>
+                </div>
+                <p class="header-motto">Better Health Begins Here.</p>
+                <a href="/login/login-signup.html" class="header-top-action">
+                    Login<i class='bx bx-user'></i>
+                </a>
+            </div>
+        </div>
+        <div class="nav">
+            <div class="nav-logo">
+                <h2>Anywhere<span>Doctor</span></h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="/index.html" class="nav-link">Home</a></li>
+                    <li class="nav-item"><a href="/about.html" class="nav-link">About</a></li>
+                    <li class="nav-item"><a href="/store.html" class="nav-link">Medication</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">Appointments</a></li>
+                    <li class="nav-item"><a href="/list.html" class="nav-link">Tracker</a></li>
+                </ul>
+                <div class="header-search" style="position: relative;">
+                    <input type="text" placeholder="Search..." class="form-input" id="search-input">
+                    <i class='bx bx-search-alt-2' id="search-icon"></i>
+                    <div class="search-suggestions" id="search-suggestions"></div>
+                </div>
+                <div class="header-user-actions">
+                    <a href="/cart.html" class="header-action-btn">
+                        <i class='bx bx-cart' style="color: #0F2658;"></i>
+                        <span class="count"></span>
+                    </a>
+                    <a href="chats.html" class="header-action-btn">
+                        <i class='bx bx-message-square-dots' style="color: black;"></i>
+                        <span class="count"></span>
+                    </a>
+                </div>
+                <div class="header-menu">
+                    <i class='bx bx-menu'></i>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <h3 class="section-title">Your Cart</h3>
+        <div class="cart-container">
+            <div id="cartList"></div>
+            <div class="cart-footer">
+                <a href="/store.html" class="back-to-store-btn">Back to Store</a>
+                <div id="cartTotal" class="cart-total"></div>
+            </div>
+        </div>
+    </main>
+    <script src="/cart.js"></script>
+</body>
+</html>
