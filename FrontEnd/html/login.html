@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="../css/login.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f2f2;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-box {
+      display: flex;
+      width: 800px;
+      height: 450px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      background-color: #ffffff;
+      overflow: hidden;
+    }
+
+    .login-left {
+      background-color: #0b1e49;
+      color: white;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+
+    .login-left h2 {
+      margin-bottom: 10px;
+    }
+
+    .login-left p {
+      font-size: 14px;
+    }
+
+    .login-left a {
+      color: #ffd700;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .login-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .login-right h2 {
+      margin-bottom: 30px;
+      color: #0b1e49;
+    }
+
+    .login-right input {
+      padding: 12px;
+      margin-bottom: 16px;
+      border: none;
+      border-radius: 25px;
+      background-color: #eee;
+      width: 100%;
+      font-size: 14px;
+    }
+
+    .login-right button {
+      background-color: #0b1e49;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .login-right button:hover {
+      background-color: #0a193f;
+    }
+
+    .forgot-password {
+      font-size: 12px;
+      color: #0b1e49;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <div class="login-left">
+        <h2>Hello, Welcome!</h2>
+        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+        <a href="homepage.html" style="margin-top: 30px; font-size: 14px; color: white; text-decoration: underline;">Return to Home</a>
+      </div>
+      <div class="login-right">
+        <h2>Login</h2>
+        <form id="loginForm">
+          <input type="email" id="email" placeholder="Email" required />
+          <input type="password" id="password" placeholder="Password" required />
+          <div class="forgot-password">Forgot Password?</div>
+          <button type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../scripts/login.js"></script>
+</body>
+</html>
